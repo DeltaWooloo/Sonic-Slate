@@ -1,0 +1,1 @@
+wine cmd /c _Assemble.bat
