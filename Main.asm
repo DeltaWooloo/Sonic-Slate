@@ -213,7 +213,7 @@ JMPTo_Title:
 JMPTo_Level:
 		jmp	Level
 
-Art_Text:	incbin	artunc\menutext.bin	; text used in level select and debug mode
+Art_Text:	incbin	"Misc/Debug Font.unc"	; text used in level select and debug mode
 		even
 
 ; ===========================================================================
@@ -2265,8 +2265,8 @@ loc_20BC:
 
 ; ===========================================================================
 
-Pal_Sega1:	incbin	pallet\sega1.bin
-Pal_Sega2:	incbin	pallet\sega2.bin
+Pal_Sega1:	incbin	"SEGA Screen/Palette Cycle.pal"
+Pal_Sega2:	incbin	"SEGA Screen/Main Palette.pal"
 
 ; ---------------------------------------------------------------------------
 ; Subroutines to load pallets
@@ -2354,15 +2354,15 @@ loc_2160:
 ; Pallet pointers
 ; ---------------------------------------------------------------------------
 PalPointers:
-	include "_inc\Pallet pointers.asm"
+	include "Misc/Palette Pointers.asm"
 
 ; ---------------------------------------------------------------------------
 ; Pallet data
 ; ---------------------------------------------------------------------------
-Pal_Title:	incbin	pallet\title.bin
-Pal_LevelSel:	incbin	pallet\levelsel.bin
-Pal_Sonic:	incbin	pallet\sonic.bin
-Pal_GHZ:	incbin	pallet\ghz.bin
+Pal_Title:	incbin	"Title Screen/Main Palette.pal"
+Pal_LevelSel:	incbin	"Title Screen/Level Select.pal"
+Pal_Sonic:	incbin	"Objects/Players/Sonic/Main Palette.pal"
+Pal_GHZ:	incbin	"Levels/Test Zone/Main Palette.pal"
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	delay the program by ($FFFFF62A) frames
@@ -2936,17 +2936,19 @@ PlayLevel:
 ; Level	select - level pointers
 ; ---------------------------------------------------------------------------
 LSelectPointers:
-		incbin	misc\ls_point.bin
+		dc.w	$0000
+		dc.w	$0001
+		dc.w	$0080
 		even
 ; ---------------------------------------------------------------------------
 ; Level	select codes
 ; ---------------------------------------------------------------------------
 LevelSelectCode_J:
-		incbin	misc\ls_jcode.bin
+		incbin	"Title Screen/Lev Sel JP Code.bin"
 		even
 
 LevelSelectCode_US:
-		incbin	misc\ls_ucode.bin
+		incbin	"Title Screen/Lev Sel US Code.bin"
 		even
 ; ===========================================================================
 
@@ -3114,13 +3116,14 @@ loc_3598:				; XREF: LevSel_ChgLine
 ; ---------------------------------------------------------------------------
 ; Level	select menu text
 ; ---------------------------------------------------------------------------
-LevelMenuText:	incbin	misc\menutext.bin
+LevelMenuText:	incbin	"Title Screen/Lev Sel Menu Text.bin"
 		even
 ; ---------------------------------------------------------------------------
 ; Music	playlist
 ; ---------------------------------------------------------------------------
-MusicList:	incbin	misc\muslist.bin
-		even
+MusicList:
+	dc.b	$81
+	even
 ; ===========================================================================
 
 ; ---------------------------------------------------------------------------
@@ -3392,7 +3395,7 @@ ColIndexLoad:				; XREF: Level
 ; Collision index pointers
 ; ---------------------------------------------------------------------------
 ColPointers:
-	include "_inc\Collision index pointers.asm"
+	include "Levels/Collision Pointers.asm"
 
 ; ---------------------------------------------------------------------------
 ; Oscillating number subroutine
@@ -3696,8 +3699,8 @@ loc_60F8:
 ; MJ: Sonic start location array
 ; ---------------------------------------------------------------------------
 
-StartLocArray:	incbin	startpos\ghz1.bin
-		incbin	startpos\ghz2.bin
+StartLocArray:	incbin	"Levels/Test Zone/Start Pos 1.pos"
+		incbin	"Levels/Test Zone/Start Pos 2.pos"
 		even
 
 ; ===========================================================================
@@ -5749,7 +5752,7 @@ Obj11_Display2:				; XREF: Obj11_Index
 ; Sprite mappings - GHZ	bridge
 ; ---------------------------------------------------------------------------
 Map_obj11:
-	include "_maps\obj11.asm"
+	include "Objects/Bridge/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -6002,7 +6005,7 @@ Obj15_Display:				; XREF: Obj15_Index
 ; Sprite mappings - GHZ	and MZ swinging	platforms
 ; ---------------------------------------------------------------------------
 Map_obj15:
-	include "_maps\obj15ghz.asm"
+	include "Objects/Swinging Platform/Mappings.asm"
 
 ; ===========================================================================
 
@@ -6312,7 +6315,7 @@ Obj18_Delete:				; XREF: Obj18_Index
 ; Sprite mappings - GHZ	platforms
 ; ---------------------------------------------------------------------------
 Map_obj18:
-	include "_maps\obj18ghz.asm"
+	include "Objects/Platform/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -6565,7 +6568,7 @@ locret_856E:
 ; Sprite mappings - collapsing floors (MZ, SLZ,	SBZ)
 ; ---------------------------------------------------------------------------
 Map_obj53:
-	include "_maps\obj53.asm"
+	include "Objects/Collapsing Platform/Mappings.asm"
 
 ; ===========================================================================
 
@@ -6648,39 +6651,13 @@ Obj3F_Main:				; XREF: Obj3F_Index
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - explosion
 ; ---------------------------------------------------------------------------
-Map_obj27:	dc.w byte_8ED0-Map_obj27, byte_8ED6-Map_obj27
-		dc.w byte_8EDC-Map_obj27, byte_8EE2-Map_obj27
-		dc.w byte_8EF7-Map_obj27
-byte_8ED0:	dc.b 1
-		dc.b $F8, 9, 0,	0, $F4
-byte_8ED6:	dc.b 1
-		dc.b $F0, $F, 0, 6, $F0
-byte_8EDC:	dc.b 1
-		dc.b $F0, $F, 0, $16, $F0
-byte_8EE2:	dc.b 4
-		dc.b $EC, $A, 0, $26, $EC
-		dc.b $EC, 5, 0,	$2F, 4
-		dc.b 4,	5, $18,	$2F, $EC
-		dc.b $FC, $A, $18, $26,	$FC
-byte_8EF7:	dc.b 4
-		dc.b $EC, $A, 0, $33, $EC
-		dc.b $EC, 5, 0,	$3C, 4
-		dc.b 4,	5, $18,	$3C, $EC
-		dc.b $FC, $A, $18, $33,	$FC
-		even
+Map_obj27:
+		include	"Objects/Explosion/Enemy Mappings.asm"
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - explosion from when	a boss is destroyed
 ; ---------------------------------------------------------------------------
-Map_obj3F:	dc.w byte_8ED0-Map_obj3F
-		dc.w byte_8F16-Map_obj3F
-		dc.w byte_8F1C-Map_obj3F
-		dc.w byte_8EE2-Map_obj3F
-		dc.w byte_8EF7-Map_obj3F
-byte_8F16:	dc.b 1
-		dc.b $F0, $F, 0, $40, $F0
-byte_8F1C:	dc.b 1
-		dc.b $F0, $F, 0, $50, $F0
-		even
+Map_obj3F:
+		include	"Objects/Explosion/Boss Mappings.asm"
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Object 28 - animals
@@ -7112,19 +7089,19 @@ Obj29_Slower:				; XREF: Obj29_Index
 ; Sprite mappings - animals
 ; ---------------------------------------------------------------------------
 Map_obj28:
-	include "_maps\obj28.asm"
+	include "Objects/Animals/Mappings 1.asm"
 
 Map_obj28a:
-	include "_maps\obj28a.asm"
+	include "Objects/Animals/Mappings 2.asm"
 
 Map_obj28b:
-	include "_maps\obj28b.asm"
+	include "Objects/Animals/Mappings 3.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - points that	appear when you	destroy	something
 ; ---------------------------------------------------------------------------
 Map_obj29:
-	include "_maps\obj29.asm"
+	include "Objects/Points/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -7456,13 +7433,13 @@ loc_1A988:
 	jmp	(SpeedtoPos).l
 ; ===========================================================================
 Ani_obj25:
-	include "_anim\obj25.asm"
+	include "Objects/Rings/Animations.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - rings
 ; ---------------------------------------------------------------------------
 Map_obj25:
-	include "_maps\obj25.asm"
+	include "Objects/Rings/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -7841,13 +7818,13 @@ loc_A4EA:
 
 ; ===========================================================================
 Ani_obj26:
-	include "_anim\obj26.asm"
+	include "Objects/Monitors/Animations.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - monitors
 ; ---------------------------------------------------------------------------
 Map_obj26:
-	include "_maps\obj26.asm"
+	include "Objects/Monitors/Mappings.asm"
 
 ; ===========================================================================
 
@@ -8122,7 +8099,7 @@ loc_BE9E:
 ; Sprite mappings - switches (MZ, SYZ, LZ, SBZ)
 ; ---------------------------------------------------------------------------
 Map_obj32:
-	include "_maps\obj32.asm"
+	include "Objects/Switch/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -8509,7 +8486,7 @@ locret_C2E4:
 ; Sprite mappings - pushable blocks (MZ, LZ)
 ; ---------------------------------------------------------------------------
 Map_obj33:
-	include "_maps\obj33.asm"
+	include "Objects/Push Blocks/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -8984,175 +8961,19 @@ Obj3A_Config:	dc.w 4,	$124, $BC	; x-start, x-main, y-main
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - zone title cards
 ; ---------------------------------------------------------------------------
-Map_obj34:	dc.w byte_C9FE-Map_obj34
-		dc.w byte_CA2C-Map_obj34
-		dc.w byte_CA5A-Map_obj34
-		dc.w byte_CA7A-Map_obj34
-		dc.w byte_CAA8-Map_obj34
-		dc.w byte_CADC-Map_obj34
-		dc.w byte_CB10-Map_obj34
-		dc.w byte_CB26-Map_obj34
-		dc.w byte_CB31-Map_obj34
-		dc.w byte_CB3C-Map_obj34
-		dc.w byte_CB47-Map_obj34
-		dc.w byte_CB8A-Map_obj34
-byte_C9FE:	dc.b 9 			; GREEN HILL
-		dc.b $F8, 5, 0,	$18, $B4
-		dc.b $F8, 5, 0,	$3A, $C4
-		dc.b $F8, 5, 0,	$10, $D4
-		dc.b $F8, 5, 0,	$10, $E4
-		dc.b $F8, 5, 0,	$2E, $F4
-		dc.b $F8, 5, 0,	$1C, $14
-		dc.b $F8, 1, 0,	$20, $24
-		dc.b $F8, 5, 0,	$26, $2C
-		dc.b $F8, 5, 0,	$26, $3C
-byte_CA2C:	dc.b 9			; LABYRINTH
-		dc.b $F8, 5, 0,	$26, $BC
-		dc.b $F8, 5, 0,	0, $CC
-		dc.b $F8, 5, 0,	4, $DC
-		dc.b $F8, 5, 0,	$4A, $EC
-		dc.b $F8, 5, 0,	$3A, $FC
-		dc.b $F8, 1, 0,	$20, $C
-		dc.b $F8, 5, 0,	$2E, $14
-		dc.b $F8, 5, 0,	$42, $24
-		dc.b $F8, 5, 0,	$1C, $34
-byte_CA5A:	dc.b 6			; MARBLE
-		dc.b $F8, 5, 0,	$2A, $CF
-		dc.b $F8, 5, 0,	0, $E0
-		dc.b $F8, 5, 0,	$3A, $F0
-		dc.b $F8, 5, 0,	4, 0
-		dc.b $F8, 5, 0,	$26, $10
-		dc.b $F8, 5, 0,	$10, $20
-		dc.b 0
-byte_CA7A:	dc.b 9			; STAR	LIGHT
-		dc.b $F8, 5, 0,	$3E, $B4
-		dc.b $F8, 5, 0,	$42, $C4
-		dc.b $F8, 5, 0,	0, $D4
-		dc.b $F8, 5, 0,	$3A, $E4
-		dc.b $F8, 5, 0,	$26, 4
-		dc.b $F8, 1, 0,	$20, $14
-		dc.b $F8, 5, 0,	$18, $1C
-		dc.b $F8, 5, 0,	$1C, $2C
-		dc.b $F8, 5, 0,	$42, $3C
-byte_CAA8:	dc.b $A			; SPRING YARD
-		dc.b $F8, 5, 0,	$3E, $AC
-		dc.b $F8, 5, 0,	$36, $BC
-		dc.b $F8, 5, 0,	$3A, $CC
-		dc.b $F8, 1, 0,	$20, $DC
-		dc.b $F8, 5, 0,	$2E, $E4
-		dc.b $F8, 5, 0,	$18, $F4
-		dc.b $F8, 5, 0,	$4A, $14
-		dc.b $F8, 5, 0,	0, $24
-		dc.b $F8, 5, 0,	$3A, $34
-		dc.b $F8, 5, 0,	$C, $44
-		dc.b 0
-byte_CADC:	dc.b $A			; SCRAP BRAIN
-		dc.b $F8, 5, 0,	$3E, $AC
-		dc.b $F8, 5, 0,	8, $BC
-		dc.b $F8, 5, 0,	$3A, $CC
-		dc.b $F8, 5, 0,	0, $DC
-		dc.b $F8, 5, 0,	$36, $EC
-		dc.b $F8, 5, 0,	4, $C
-		dc.b $F8, 5, 0,	$3A, $1C
-		dc.b $F8, 5, 0,	0, $2C
-		dc.b $F8, 1, 0,	$20, $3C
-		dc.b $F8, 5, 0,	$2E, $44
-		dc.b 0
-byte_CB10:	dc.b 4			; ZONE
-		dc.b $F8, 5, 0,	$4E, $E0
-		dc.b $F8, 5, 0,	$32, $F0
-		dc.b $F8, 5, 0,	$2E, 0
-		dc.b $F8, 5, 0,	$10, $10
-		dc.b 0
-byte_CB26:	dc.b 2			; ACT 1
-		dc.b 4,	$C, 0, $53, $EC
-		dc.b $F4, 2, 0,	$57, $C
-byte_CB31:	dc.b 2			; ACT 2
-		dc.b 4,	$C, 0, $53, $EC
-		dc.b $F4, 6, 0,	$5A, 8
-byte_CB3C:	dc.b 2			; ACT 3
-		dc.b 4,	$C, 0, $53, $EC
-		dc.b $F4, 6, 0,	$60, 8
-byte_CB47:	dc.b $D			; Oval
-		dc.b $E4, $C, 0, $70, $F4
-		dc.b $E4, 2, 0,	$74, $14
-		dc.b $EC, 4, 0,	$77, $EC
-		dc.b $F4, 5, 0,	$79, $E4
-		dc.b $14, $C, $18, $70,	$EC
-		dc.b 4,	2, $18,	$74, $E4
-		dc.b $C, 4, $18, $77, 4
-		dc.b $FC, 5, $18, $79, $C
-		dc.b $EC, 8, 0,	$7D, $FC
-		dc.b $F4, $C, 0, $7C, $F4
-		dc.b $FC, 8, 0,	$7C, $F4
-		dc.b 4,	$C, 0, $7C, $EC
-		dc.b $C, 8, 0, $7C, $EC
-		dc.b 0
-byte_CB8A:	dc.b 5			; FINAL
-		dc.b $F8, 5, 0,	$14, $DC
-		dc.b $F8, 1, 0,	$20, $EC
-		dc.b $F8, 5, 0,	$2E, $F4
-		dc.b $F8, 5, 0,	0, 4
-		dc.b $F8, 5, 0,	$26, $14
-		even
+Map_obj34:
+		include	"Objects/Title Cards/Mappings.asm"
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - "GAME OVER"	and "TIME OVER"
 ; ---------------------------------------------------------------------------
 Map_obj39:
-	include "_maps\obj39.asm"
+	include "Objects/Game Over Card/Mappings.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - "SONIC HAS PASSED" title card
 ; ---------------------------------------------------------------------------
-Map_obj3A:	dc.w byte_CBEA-Map_obj3A
-		dc.w byte_CC13-Map_obj3A
-		dc.w byte_CC32-Map_obj3A
-		dc.w byte_CC51-Map_obj3A
-		dc.w byte_CC75-Map_obj3A
-		dc.w byte_CB47-Map_obj3A
-		dc.w byte_CB26-Map_obj3A
-		dc.w byte_CB31-Map_obj3A
-		dc.w byte_CB3C-Map_obj3A
-byte_CBEA:	dc.b 8			; SONIC HAS
-		dc.b $F8, 5, 0,	$3E, $B8
-		dc.b $F8, 5, 0,	$32, $C8
-		dc.b $F8, 5, 0,	$2E, $D8
-		dc.b $F8, 1, 0,	$20, $E8
-		dc.b $F8, 5, 0,	8, $F0
-		dc.b $F8, 5, 0,	$1C, $10
-		dc.b $F8, 5, 0,	0, $20
-		dc.b $F8, 5, 0,	$3E, $30
-byte_CC13:	dc.b 6			; PASSED
-		dc.b $F8, 5, 0,	$36, $D0
-		dc.b $F8, 5, 0,	0, $E0
-		dc.b $F8, 5, 0,	$3E, $F0
-		dc.b $F8, 5, 0,	$3E, 0
-		dc.b $F8, 5, 0,	$10, $10
-		dc.b $F8, 5, 0,	$C, $20
-byte_CC32:	dc.b 6			; SCORE
-		dc.b $F8, $D, 1, $4A, $B0
-		dc.b $F8, 1, 1,	$62, $D0
-		dc.b $F8, 9, 1,	$64, $18
-		dc.b $F8, $D, 1, $6A, $30
-		dc.b $F7, 4, 0,	$6E, $CD
-		dc.b $FF, 4, $18, $6E, $CD
-byte_CC51:	dc.b 7			; TIME BONUS
-		dc.b $F8, $D, 1, $5A, $B0
-		dc.b $F8, $D, 0, $66, $D9
-		dc.b $F8, 1, 1,	$4A, $F9
-		dc.b $F7, 4, 0,	$6E, $F6
-		dc.b $FF, 4, $18, $6E, $F6
-		dc.b $F8, $D, $FF, $F0,	$28
-		dc.b $F8, 1, 1,	$70, $48
-byte_CC75:	dc.b 7			; RING BONUS
-		dc.b $F8, $D, 1, $52, $B0
-		dc.b $F8, $D, 0, $66, $D9
-		dc.b $F8, 1, 1,	$4A, $F9
-		dc.b $F7, 4, 0,	$6E, $F6
-		dc.b $FF, 4, $18, $6E, $F6
-		dc.b $F8, $D, $FF, $F8,	$28
-		dc.b $F8, 1, 1,	$70, $48
-		even
+Map_obj3A:
+		include	"Objects/Level Results/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -9345,7 +9166,7 @@ locret_CFE6:
 ; Sprite mappings - spikes
 ; ---------------------------------------------------------------------------
 Map_obj36:
-	include "_maps\obj36.asm"
+	include "Objects/Spikes/Mappings.asm"
 
 ; ===========================================================================
 
@@ -9503,7 +9324,7 @@ Obj3C_FragSpd2:	dc.w $FA00, $FA00
 ; Sprite mappings - smashable walls (GHZ, SLZ)
 ; ---------------------------------------------------------------------------
 Map_obj3C:
-	include "_maps\obj3C.asm"
+	include "Objects/Smashable Wall/Mappings.asm"
 
 ; ---------------------------------------------------------------------------
 ; Object code loading subroutine
@@ -11295,13 +11116,13 @@ Obj47_Delete:
 		bra.w	DeleteObject
 ; ===========================================================================
 Ani_obj47:
-	include "_anim\obj47.asm"
+	include "Objects/Bumper/Animations.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - pinball bumper (SYZ)
 ; ---------------------------------------------------------------------------
 Map_obj47:
-	include "_maps\obj47.asm"
+	include "Objects/Bumper/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -11482,13 +11303,13 @@ locret_ED1A:				; XREF: Obj0D_Index
 		rts	
 ; ===========================================================================
 Ani_obj0D:
-	include "_anim\obj0D.asm"
+	include "Objects/Signpost/Animations.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - signpost
 ; ---------------------------------------------------------------------------
 Map_obj0D:
-	include "_maps\obj0D.asm"
+	include "Objects/Signpost/Mappings.asm"
 
 ; ===========================================================================
 
@@ -11538,7 +11359,7 @@ Obj54_NoDel:
 ; Sprite mappings - invisible lava tag (MZ)
 ; ---------------------------------------------------------------------------
 Map_obj54:
-	include "_maps\obj54.asm"
+	include "Objects/Invisible Harm Tag/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -11677,13 +11498,13 @@ Obj40_Delete:				; XREF: Obj40_Index
 		bra.w	DeleteObject
 ; ===========================================================================
 Ani_obj40:
-	include "_anim\obj40.asm"
+	include "Objects/Example Enemy/Animations.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - Moto Bug enemy (GHZ)
 ; ---------------------------------------------------------------------------
 Map_obj40:
-	include "_maps\obj40.asm"
+	include "Objects/Example Enemy/Mappings.asm"
 
 ; ===========================================================================
 
@@ -12081,7 +11902,7 @@ Obj71_Delete:
 ; Sprite mappings - invisible solid blocks
 ; ---------------------------------------------------------------------------
 Map_obj71:
-	include "_maps\obj71.asm"
+	include "Objects/Invisible Solid Block/Mappings.asm"
 
 ; ===========================================================================
 
@@ -12347,13 +12168,13 @@ loc_12998:
 		rts	
 ; ===========================================================================
 Ani_obj64:
-	include "_anim\obj64.asm"
+	include "Objects/Bubbles/Main Animations.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - bubbles (LZ)
 ; ---------------------------------------------------------------------------
 Map_obj64:
-	include "_maps\obj64.asm"
+	include "Objects/Bubbles/Main Mappings.asm"
 
 ; ===========================================================================
 
@@ -14499,7 +14320,7 @@ loc_13B26:
 
 ; ===========================================================================
 SonicAniData:
-	include "_anim\Sonic.asm"
+	include "Objects/Players/Sonic/Animations.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sonic	pattern	loading	subroutine
@@ -14866,13 +14687,13 @@ loc_140AC:
 
 ; ===========================================================================
 Ani_obj0A:
-	include "_anim\obj0A.asm"
+	include "Objects/Bubbles/Drown Animations.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - drowning countdown numbers (LZ)
 ; ---------------------------------------------------------------------------
 Map_obj0A:
-	include "_maps\obj0A.asm"
+	include "Objects/Bubbles/Drown Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -14981,13 +14802,13 @@ Obj38_Delete2:				; XREF: Obj38_Stars
 ; ===========================================================================
 
 Ani_obj38:
-	include "_anim\obj38.asm"
+	include "Objects/Shields/Normal Shield/Animations.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - shield and invincibility stars
 ; ---------------------------------------------------------------------------
 Map_obj38:
-	include "_maps\obj38.asm"
+	include "Objects/Shields/Normal Shield/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -16418,7 +16239,7 @@ locret_170F6:
 ; Sprite mappings - lamppost
 ; ---------------------------------------------------------------------------
 Map_obj79:
-	include "_maps\obj79.asm"
+	include "Objects/Checkpoint/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -16823,13 +16644,13 @@ Obj3D_Display:				; XREF: Obj3D_FaceDisp; Obj3D_FlameDisp
 		jmp	DisplaySprite
 ; ===========================================================================
 Ani_Eggman:
-	include "_anim\Eggman.asm"
+	include "Objects/Example Boss/Animations.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - Eggman (boss levels)
 ; ---------------------------------------------------------------------------
 Map_Eggman:
-	include "_maps\Eggman.asm"
+	include "Objects/Example Boss/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -17052,13 +16873,13 @@ Obj3E_Obj28Found:
 		rts	
 ; ===========================================================================
 Ani_obj3E:
-	include "_anim\obj3E.asm"
+	include "Objects/Animal Capsule/Animations.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - prison capsule
 ; ---------------------------------------------------------------------------
 Map_obj3E:
-	include "_maps\obj3E.asm"
+	include "Objects/Animal Capsule/Mappings.asm"
 
 ; ---------------------------------------------------------------------------
 ; Object touch response	subroutine - $20(a0) in	the object RAM
@@ -17843,7 +17664,7 @@ return_40858:
 ; Sprite mappings - SCORE, TIME, RINGS
 ; ---------------------------------------------------------------------------
 Map_obj21:
-	include "_maps\obj21.asm"
+	include "Levels/HUD Mappings.asm"
 
 ; ---------------------------------------------------------------------------
 ; Add points subroutine
@@ -18405,9 +18226,9 @@ Hud_ClrLivesLoop:
 ; End of function Hud_Lives
 
 ; ===========================================================================
-Art_Hud:	incbin	artunc\HUD.bin		; 8x16 pixel numbers on HUD
+Art_Hud:	incbin	"Levels/HUD Number Tiles.unc"		; 8x16 pixel numbers on HUD
 		even
-Art_LivesNums:	incbin	artunc\livescnt.bin	; 8x8 pixel numbers on lives counter
+Art_LivesNums:	incbin	"Levels/Life Number Tiles.unc"	; 8x8 pixel numbers on lives counter
 		even
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -18613,174 +18434,175 @@ Debug_ShowItem:				; XREF: Debug_Main
 ; Debug	list pointers
 ; ---------------------------------------------------------------------------
 DebugList:
-	include "_inc\Debug list pointers.asm"
+	include "Levels/Debug List Pointers.asm"
 
 ; ---------------------------------------------------------------------------
 ; Debug	list - Green Hill
 ; ---------------------------------------------------------------------------
 Debug_GHZ:
-	include "_inc\Debug list - GHZ.asm"
+	include "Levels/Test Zone/Debug List.asm"
 
 ; ---------------------------------------------------------------------------
 ; Main level load blocks
 ; ---------------------------------------------------------------------------
 MainLoadBlocks:
-	include "_inc\Main level load blocks.asm"
+	include "Levels/Level Headers.asm"
 
 ; ---------------------------------------------------------------------------
 ; Pattern load cues
 ; ---------------------------------------------------------------------------
 ArtLoadCues:
-	include "_inc\Pattern load cues.asm"
+	include "Misc/PLCs.asm"
 
-Nem_SegaLogo:	incbin	artnem\segalogo.bin	; large Sega logo
+Nem_SegaLogo:	incbin	"SEGA Screen/Tiles.nem"	; large Sega logo
 		even
-Eni_SegaLogo:	incbin	mapeni\segalogo.bin	; large Sega logo (mappings)
+Eni_SegaLogo:	incbin	"SEGA Screen/Mappings.eni"	; large Sega logo (mappings)
 		even
-Eni_Title:	incbin	mapeni\titlescr.bin	; title screen foreground (mappings)
+Eni_Title:	incbin	"Title Screen/Foreground Mappings.eni"	; title screen foreground (mappings)
 		even
-Nem_TitleFg:	incbin	artnem\titlefor.bin	; title screen foreground
+Nem_TitleFg:	incbin	"Title Screen/Main Tiles.nem"	; title screen foreground
 		even
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - Sonic
 ; ---------------------------------------------------------------------------
 Map_Sonic:
-	include "_maps\Sonic.asm"
+	include "Objects/Players/Sonic/Mappings.asm"
 
 ; ---------------------------------------------------------------------------
 ; Uncompressed graphics	loading	array for Sonic
 ; ---------------------------------------------------------------------------
 SonicDynPLC:
-	include "_inc\Sonic dynamic pattern load cues.asm"
+	include "Objects/Players/Sonic/DPLCs.asm"
 
 ; ---------------------------------------------------------------------------
 ; Uncompressed graphics	- Sonic
 ; ---------------------------------------------------------------------------
-Art_Sonic:	incbin	artunc\sonic.bin	; Sonic
+Art_Sonic:	incbin	"Objects/Players/Sonic/Tiles.unc"	; Sonic
 		even
-Art_Dust	incbin	artunc\spindust.bin
+Art_Dust	incbin	"Objects/Dust and Splash/Tiles.unc"
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - various
 ; ---------------------------------------------------------------------------
-Nem_Shield:	incbin	artnem\shield.bin	; shield
+Nem_Shield:	incbin	"Objects/Shields/Normal Shield/Tiles.nem"	; shield
 		even
-Nem_Stars:	incbin	artnem\invstars.bin	; invincibility stars
+Nem_Stars:	incbin	"Objects/Invincibility Stars/Tiles.nem"	; invincibility stars
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - GHZ stuff
 ; ---------------------------------------------------------------------------
-Nem_Swing:	incbin	artnem\ghzswing.bin	; GHZ swinging platform
+Nem_Swing:	incbin	"Objects/Swinging Platform/Tiles.nem"	; GHZ swinging platform
 		even
-Nem_Bridge:	incbin	artnem\ghzbridg.bin	; GHZ bridge
+Nem_Bridge:	incbin	"Objects/Bridge/Tiles.nem"	; GHZ bridge
 		even
-Nem_Spikes:	incbin	artnem\spikes.bin	; spikes
+Nem_Spikes:	incbin	"Objects/Spikes/Tiles.nem"	; spikes
 		even
-Nem_GhzWall1:	incbin	artnem\ghzwall1.bin
+Nem_GhzWall1:	incbin	"Objects/Smashable Wall/Tiles.nem"
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - SYZ stuff
 ; ---------------------------------------------------------------------------
-Nem_Bumper:	incbin	artnem\syzbumpe.bin	; SYZ bumper
+Nem_Bumper:	incbin	"Objects/Bumper/Tiles.nem"	; SYZ bumper
 		even
-Nem_LzSwitch:	incbin	artnem\switch.bin	; LZ/SYZ/SBZ switch
+Nem_LzSwitch:	incbin	"Objects/Switch/Tiles.nem"	; LZ/SYZ/SBZ switch
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - enemies
 ; ---------------------------------------------------------------------------
-Nem_Motobug:	incbin	artnem\motobug.bin	; moto bug
+Nem_Motobug:	incbin	"Objects/Example Enemy/Tiles.nem"	; moto bug
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - various
 ; ---------------------------------------------------------------------------
-Nem_TitleCard:	incbin	artnem\ttlcards.bin	; title cards
+Nem_TitleCard:	incbin	"Objects/Title Cards/Tiles.nem"	; title cards
 		even
-Nem_Hud:	incbin	artnem\hud.bin		; HUD (rings, time, score)
+Nem_Hud:	incbin	"Levels/HUD Main Tiles.nem"		; HUD (rings, time, score)
 		even
-Nem_Lives:	incbin	artnem\lifeicon.bin	; life counter icon
+Nem_Lives:	incbin	"Levels/Sonic Icon Tiles.nem"	; life counter icon
 		even
-Nem_Ring:	incbin	artnem\rings.bin	; rings
+Nem_Ring:	incbin	"Objects/Rings/Tiles.nem"	; rings
 		even
-Nem_Monitors:	incbin	artnem\monitors.bin	; monitors
+Nem_Monitors:	incbin	"Objects/Monitors/Tiles.nem"	; monitors
 		even
-Nem_Explode:	incbin	artnem\explosio.bin	; explosion
+Nem_Explode:	incbin	"Objects/Explosion/Tiles.nem"	; explosion
 		even
-Nem_Points:	incbin	artnem\points.bin	; points from destroyed enemy or object
+Nem_Points:	incbin	"Objects/Points/Tiles.nem"	; points from destroyed enemy or object
 		even
-Nem_GameOver:	incbin	artnem\gameover.bin	; game over / time over
+Nem_GameOver:	incbin	"Objects/Game Over Card/Tiles.nem"	; game over / time over
 		even
 Nem_HSpring:	incbin	"Objects/Springs/Vertical Tiles.nem"	; horizontal spring
 		even
 Nem_VSpring:	incbin	"Objects/Springs/Horizontal Tiles.nem"	; vertical spring
 		even
-Nem_SignPost:	incbin	artnem\signpost.bin	; end of level signpost
+Nem_SignPost:	incbin	"Objects/Signpost/Tiles.nem"	; end of level signpost
 		even
-Nem_Lamp:	incbin	artnem\lamppost.bin	; lamppost
+Nem_Lamp:	incbin	"Objects/Checkpoint/Tiles.nem"	; lamppost
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - animals
 ; ---------------------------------------------------------------------------
-Nem_Rabbit:	incbin	artnem\rabbit.bin	; rabbit
+Nem_Rabbit:	incbin	"Objects/Animals/Rabbit Tiles.nem"	; rabbit
 		even
-Nem_Chicken:	incbin	artnem\chicken.bin	; chicken
+Nem_Chicken:	incbin	"Objects/Animals/Chicken Tiles.nem"	; chicken
 		even
-Nem_BlackBird:	incbin	artnem\blackbrd.bin	; blackbird
+Nem_BlackBird:	incbin	"Objects/Animals/Penguin Tiles.nem"	; blackbird
 		even
-Nem_Seal:	incbin	artnem\seal.bin		; seal
+Nem_Seal:	incbin	"Objects/Animals/Seal Tiles.nem"		; seal
 		even
-Nem_Pig:	incbin	artnem\pig.bin		; pig
+Nem_Pig:	incbin	"Objects/Animals/Pig Tiles.nem"		; pig
 		even
-Nem_Flicky:	incbin	artnem\flicky.bin	; flicky
+Nem_Flicky:	incbin	"Objects/Animals/Flicky Tiles.nem"	; flicky
 		even
-Nem_Squirrel:	incbin	artnem\squirrel.bin	; squirrel
+Nem_Squirrel:	incbin	"Objects/Animals/Squirrel Tiles.nem"	; squirrel
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - primary patterns and block mappings
 ; ---------------------------------------------------------------------------
 
-Blk16_GHZ:	incbin	map16\ghz.bin
+Blk16_GHZ:	incbin	"Levels/Test Zone/Blocks.eni"
 		even
-Kos_GHZ:	incbin	artkos\8x8ghz.bin	; GHZ primary patterns
+Kos_GHZ:	incbin	"Levels/Test Zone/Tiles.kos"	; GHZ primary patterns
 		even
-Blk256_GHZ:	incbin	map256\ghz.bin
+Blk256_GHZ:	incbin	"Levels/Test Zone/Chunks.kos"
 		even
 
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - bosses
 ; ---------------------------------------------------------------------------
-Nem_Eggman:	incbin	artnem\bossmain.bin	; boss main patterns
+Nem_Eggman:	incbin	"Objects/Example Boss/Main Tiles.nem"	; boss main patterns
 		even
-Nem_Prison:	incbin	artnem\prison.bin	; prison capsule
+Nem_Prison:	incbin	"Objects/Animal Capsule/Tiles.nem"	; prison capsule
 		even
-Nem_Exhaust:	incbin	artnem\bossflam.bin	; boss exhaust flame
+Nem_Exhaust:	incbin	"Objects/Example Boss/Exhaust Tiles.nem"	; boss exhaust flame
 		even
 
 ; ---------------------------------------------------------------------------
 ; Collision data
 ; ---------------------------------------------------------------------------
-AngleMap:	incbin	collide\anglemap.bin	; floor angle map
+AngleMap:	incbin	"Levels/Angle Map.bin"	; floor angle map
 		even
-CollArray1:	incbin	collide\carray_n.bin	; normal collision array
+CollArray1:	incbin	"Levels/Normal Coll Array.bin"	; normal collision array
 		even
-CollArray2:	incbin	collide\carray_r.bin	; rotated collision array
+CollArray2:	incbin	"Levels/Rotated Coll Array.bin"	; rotated collision array
 		even
-Col_GHZ_1:	incbin	collide\ghz1.bin	; GHZ index 1
+Col_GHZ_1:	incbin	"Levels/Test Zone/Path 1.col"	; GHZ index 1
 		even
-Col_GHZ_2:	incbin	collide\ghz2.bin	; GHZ index 2
+Col_GHZ_2:	incbin	"Levels/Test Zone/Path 2.col"	; GHZ index 2
 		even
 ; ---------------------------------------------------------------------------
 ; Level	layout index
 ; ---------------------------------------------------------------------------
 Level_Index:	dc.l Level_GHZ1, Level_GHZbg, byte_68D70	; MJ: Table needs to be read in long-word as the layouts are now bigger
-		dc.l Level_GHZ2, Level_GHZbg, byte_68E3C
+		dc.l Level_GHZ2, Level_GHZbg2, byte_68E3C
 
-Level_GHZ1:	incbin	levels\ghz1.bin
+Level_GHZ1:	incbin	"Levels/Test Zone/Layout 1.lyt"
 		even
 byte_68D70:	dc.b 0,	0, 0, 0
-Level_GHZ2:	incbin	levels\ghz2.bin
+Level_GHZ2:	incbin	"Levels/Test Zone/Layout 2.lyt"
 		even
 byte_68E3C:	dc.b 0,	0, 0, 0
-Level_GHZbg:	incbin	levels\ghzbg.bin
+Level_GHZbg:	incbin	"Levels/Test Zone/Background 1.lyt"
+Level_GHZbg2:	incbin	"Levels/Test Zone/Background 2.lyt"
 		even
 
 ; ---------------------------------------------------------------------------
@@ -18789,9 +18611,9 @@ Level_GHZbg:	incbin	levels\ghzbg.bin
 ObjPos_Index:	dc.w ObjPos_GHZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_GHZ2-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.b $FF, $FF, 0, 0, 0,	0
-ObjPos_GHZ1:	incbin	objpos\ghz1.bin
+ObjPos_GHZ1:	incbin	"Levels/Test Zone/Objects 1.obj"
 		even
-ObjPos_GHZ2:	incbin	objpos\ghz2.bin
+ObjPos_GHZ2:	incbin	"Levels/Test Zone/Objects 2.obj"
 		even
 ObjPos_Null:	dc.b $FF, $FF, 0, 0, 0,	0
 ; ---------------------------------------------------------------------------
@@ -18819,15 +18641,15 @@ Go_PSGIndex:	dc.l PSG_Index		; XREF: sub_72926
 PSG_Index:	dc.l PSG1, PSG2, PSG3
 		dc.l PSG4, PSG5, PSG6
 		dc.l PSG7, PSG8, PSG9
-PSG1:		incbin	sound\psg1.bin
-PSG2:		incbin	sound\psg2.bin
-PSG3:		incbin	sound\psg3.bin
-PSG4:		incbin	sound\psg4.bin
-PSG6:		incbin	sound\psg6.bin
-PSG5:		incbin	sound\psg5.bin
-PSG7:		incbin	sound\psg7.bin
-PSG8:		incbin	sound\psg8.bin
-PSG9:		incbin	sound\psg9.bin
+PSG1:		incbin	Audio/psg1.bin
+PSG2:		incbin	Audio/psg2.bin
+PSG3:		incbin	Audio/psg3.bin
+PSG4:		incbin	Audio/psg4.bin
+PSG6:		incbin	Audio/psg6.bin
+PSG5:		incbin	Audio/psg5.bin
+PSG7:		incbin	Audio/psg7.bin
+PSG8:		incbin	Audio/psg8.bin
+PSG9:		incbin	Audio/psg9.bin
 
 byte_71A94:	dc.b 7,	$72, $73, $26, $15, 8, $FF, 5
 ; ---------------------------------------------------------------------------
@@ -21168,49 +20990,49 @@ loc_72E64:				; XREF: loc_72A64
 		move.b	#$F,d1
 		bra.w	sub_7272E
 ; ===========================================================================
-Kos_Z80:	incbin	sound\z80_1.bin
+Kos_Z80:	incbin	Audio/z80_1.bin
 		dc.w ((SegaPCM&$FF)<<8)+((SegaPCM&$FF00)>>8)
 		dc.b $21
 		dc.w (((EndOfRom-SegaPCM)&$FF)<<8)+(((EndOfRom-SegaPCM)&$FF00)>>8)
-		incbin	sound\z80_2.bin
+		incbin	Audio/z80_2.bin
 		even
-Music81:	incbin	sound\music81.bin
+Music81:	incbin	Audio/music81.bin
 		even
-Music82:	incbin	sound\music82.bin
+Music82:	incbin	Audio/music82.bin
 		even
-Music83:	incbin	sound\music83.bin
+Music83:	incbin	Audio/music83.bin
 		even
-Music84:	incbin	sound\music84.bin
+Music84:	incbin	Audio/music84.bin
 		even
-Music85:	incbin	sound\music85.bin
+Music85:	incbin	Audio/music85.bin
 		even
-Music86:	incbin	sound\music86.bin
+Music86:	incbin	Audio/music86.bin
 		even
-Music87:	incbin	sound\music87.bin
+Music87:	incbin	Audio/music87.bin
 		even
-Music88:	incbin	sound\music88.bin
+Music88:	incbin	Audio/music88.bin
 		even
-Music89:	incbin	sound\music89.bin
+Music89:	incbin	Audio/music89.bin
 		even
-Music8A:	incbin	sound\music8A.bin
+Music8A:	incbin	Audio/music8A.bin
 		even
-Music8B:	incbin	sound\music8B.bin
+Music8B:	incbin	Audio/music8B.bin
 		even
-Music8C:	incbin	sound\music8C.bin
+Music8C:	incbin	Audio/music8C.bin
 		even
-Music8D:	incbin	sound\music8D.bin
+Music8D:	incbin	Audio/music8D.bin
 		even
-Music8E:	incbin	sound\music8E.bin
+Music8E:	incbin	Audio/music8E.bin
 		even
-Music8F:	incbin	sound\music8F.bin
+Music8F:	incbin	Audio/music8F.bin
 		even
-Music90:	incbin	sound\music90.bin
+Music90:	incbin	Audio/music90.bin
 		even
-Music91:	incbin	sound\music91.bin
+Music91:	incbin	Audio/music91.bin
 		even
-Music92:	incbin	sound\music92.bin
+Music92:	incbin	Audio/music92.bin
 		even
-Music93:	incbin	sound\music93.bin
+Music93:	incbin	Audio/music93.bin
 		even
 ; ---------------------------------------------------------------------------
 ; Sound	effect pointers
@@ -21233,107 +21055,107 @@ SoundIndex:	dc.l SoundA0, SoundA1, SoundA2
 		dc.l SoundCD, SoundCE, SoundCF
 		dc.l SoundD1
 SoundD0Index:	dc.l SoundD0
-SoundA0:	incbin	sound\soundA0.bin
+SoundA0:	incbin	Audio/soundA0.bin
 		even
-SoundA1:	incbin	sound\soundA1.bin
+SoundA1:	incbin	Audio/soundA1.bin
 		even
-SoundA2:	incbin	sound\soundA2.bin
+SoundA2:	incbin	Audio/soundA2.bin
 		even
-SoundA3:	incbin	sound\soundA3.bin
+SoundA3:	incbin	Audio/soundA3.bin
 		even
-SoundA4:	incbin	sound\soundA4.bin
+SoundA4:	incbin	Audio/soundA4.bin
 		even
-SoundA5:	incbin	sound\soundA5.bin
+SoundA5:	incbin	Audio/soundA5.bin
 		even
-SoundA6:	incbin	sound\soundA6.bin
+SoundA6:	incbin	Audio/soundA6.bin
 		even
-SoundA7:	incbin	sound\soundA7.bin
+SoundA7:	incbin	Audio/soundA7.bin
 		even
-SoundA8:	incbin	sound\soundA8.bin
+SoundA8:	incbin	Audio/soundA8.bin
 		even
-SoundA9:	incbin	sound\soundA9.bin
+SoundA9:	incbin	Audio/soundA9.bin
 		even
-SoundAA:	incbin	sound\soundAA.bin
+SoundAA:	incbin	Audio/soundAA.bin
 		even
-SoundAB:	incbin	sound\soundAB.bin
+SoundAB:	incbin	Audio/soundAB.bin
 		even
-SoundAC:	incbin	sound\soundAC.bin
+SoundAC:	incbin	Audio/soundAC.bin
 		even
-SoundAD:	incbin	sound\soundAD.bin
+SoundAD:	incbin	Audio/soundAD.bin
 		even
-SoundAE:	incbin	sound\soundAE.bin
+SoundAE:	incbin	Audio/soundAE.bin
 		even
-SoundAF:	incbin	sound\soundAF.bin
+SoundAF:	incbin	Audio/soundAF.bin
 		even
-SoundB0:	incbin	sound\soundB0.bin
+SoundB0:	incbin	Audio/soundB0.bin
 		even
-SoundB1:	incbin	sound\soundB1.bin
+SoundB1:	incbin	Audio/soundB1.bin
 		even
-SoundB2:	incbin	sound\soundB2.bin
+SoundB2:	incbin	Audio/soundB2.bin
 		even
-SoundB3:	incbin	sound\soundB3.bin
+SoundB3:	incbin	Audio/soundB3.bin
 		even
-SoundB4:	incbin	sound\soundB4.bin
+SoundB4:	incbin	Audio/soundB4.bin
 		even
-SoundB5:	incbin	sound\soundB5.bin
+SoundB5:	incbin	Audio/soundB5.bin
 		even
-SoundB6:	incbin	sound\soundB6.bin
+SoundB6:	incbin	Audio/soundB6.bin
 		even
-SoundB7:	incbin	sound\soundB7.bin
+SoundB7:	incbin	Audio/soundB7.bin
 		even
-SoundB8:	incbin	sound\soundB8.bin
+SoundB8:	incbin	Audio/soundB8.bin
 		even
-SoundB9:	incbin	sound\soundB9.bin
+SoundB9:	incbin	Audio/soundB9.bin
 		even
-SoundBA:	incbin	sound\soundBA.bin
+SoundBA:	incbin	Audio/soundBA.bin
 		even
-SoundBB:	incbin	sound\soundBB.bin
+SoundBB:	incbin	Audio/soundBB.bin
 		even
-SoundBC:	incbin	sound\soundBC.bin
+SoundBC:	incbin	Audio/soundBC.bin
 		even
-SoundBD:	incbin	sound\soundBD.bin
+SoundBD:	incbin	Audio/soundBD.bin
 		even
-SoundBE:	incbin	sound\soundBE.bin
+SoundBE:	incbin	Audio/soundBE.bin
 		even
-SoundBF:	incbin	sound\soundBF.bin
+SoundBF:	incbin	Audio/soundBF.bin
 		even
-SoundC0:	incbin	sound\soundC0.bin
+SoundC0:	incbin	Audio/soundC0.bin
 		even
-SoundC1:	incbin	sound\soundC1.bin
+SoundC1:	incbin	Audio/soundC1.bin
 		even
-SoundC2:	incbin	sound\soundC2.bin
+SoundC2:	incbin	Audio/soundC2.bin
 		even
-SoundC3:	incbin	sound\soundC3.bin
+SoundC3:	incbin	Audio/soundC3.bin
 		even
-SoundC4:	incbin	sound\soundC4.bin
+SoundC4:	incbin	Audio/soundC4.bin
 		even
-SoundC5:	incbin	sound\soundC5.bin
+SoundC5:	incbin	Audio/soundC5.bin
 		even
-SoundC6:	incbin	sound\soundC6.bin
+SoundC6:	incbin	Audio/soundC6.bin
 		even
-SoundC7:	incbin	sound\soundC7.bin
+SoundC7:	incbin	Audio/soundC7.bin
 		even
-SoundC8:	incbin	sound\soundC8.bin
+SoundC8:	incbin	Audio/soundC8.bin
 		even
-SoundC9:	incbin	sound\soundC9.bin
+SoundC9:	incbin	Audio/soundC9.bin
 		even
-SoundCA:	incbin	sound\soundCA.bin
+SoundCA:	incbin	Audio/soundCA.bin
 		even
-SoundCB:	incbin	sound\soundCB.bin
+SoundCB:	incbin	Audio/soundCB.bin
 		even
-SoundCC:	incbin	sound\soundCC.bin
+SoundCC:	incbin	Audio/soundCC.bin
 		even
-SoundCD:	incbin	sound\soundCD.bin
+SoundCD:	incbin	Audio/soundCD.bin
 		even
-SoundCE:	incbin	sound\soundCE.bin
+SoundCE:	incbin	Audio/soundCE.bin
 		even
-SoundCF:	incbin	sound\soundCF.bin
+SoundCF:	incbin	Audio/soundCF.bin
 		even
-SoundD0:	incbin	sound\soundD0.bin
+SoundD0:	incbin	Audio/soundD0.bin
 		even
-SoundD1:	incbin	sound\soundD1.bin
+SoundD1:	incbin	Audio/soundD1.bin
 		even
-SegaPCM:	incbin	sound\segapcm.bin
+SegaPCM:	incbin	Audio/segapcm.bin
 SegaPCM_End	even
 
 	include	"Error/Error Handler.asm"
