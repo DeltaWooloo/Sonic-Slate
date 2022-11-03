@@ -15,17 +15,6 @@ PalID_Title     rs.b 1
 PalID_LevSel    rs.b 1
 PalID_Sonic     rs.b 1
 PalID_GHZ       rs.b 1
-PalID_LZ        rs.b 1
-PalID_MZ        rs.b 1
-PalID_SLZ       rs.b 1
-PalID_SYZ       rs.b 1
-PalID_SBZ1      rs.b 1
-PalID_LZWater   rs.b 1
-PalID_SBZ3      rs.b 1
-PalID_SBZ3Water rs.b 1
-PalID_SBZ2      rs.b 1
-PalID_LZSonic   rs.b 1
-PalID_SBZ3Sonic rs.b 1
 ; --------------------------------------------------
 
 ; --------------------------------------------------
@@ -38,27 +27,9 @@ PLCID_Explode   rs.b 1
 PLCID_GameOver  rs.b 1
 PLCID_GHZ1      rs.b 1
 PLCID_GHZ2      rs.b 1
-PLCID_LZ1       rs.b 1
-PLCID_LZ2       rs.b 1
-PLCID_MZ1       rs.b 1
-PLCID_MZ2       rs.b 1
-PLCID_SLZ1      rs.b 1
-PLCID_SLZ2      rs.b 1
-PLCID_SYZ1      rs.b 1
-PLCID_SYZ2      rs.b 1
-PLCID_SBZ1      rs.b 1
-PLCID_SBZ2      rs.b 1
 PLCID_TtlCard   rs.b 1
-PLCID_Boss      rs.b 1
 PLCID_LevelEnd  rs.b 1
 PLCID_GHZAnimals    rs.b 1
-PLCID_LZAnimals     rs.b 1
-PLCID_MZAnimals     rs.b 1
-PLCID_SLZAnimals    rs.b 1
-PLCID_SYZAnimals    rs.b 1
-PLCID_SBZAnimals    rs.b 1
-PLCID_SBZ2Ctscn rs.b 1
-PLCID_FZBoss    rs.b 1
 ; --------------------------------------------------
 
 ; --------------------------------------------------
@@ -68,27 +39,11 @@ PLCID_FZBoss    rs.b 1
 ObID_Sonic      rs.b 1
                 rs.b 1
 ObjID_PthSwppr  rs.b 1
-                rs.b 1
+ObjID_SpnTrggr  rs.b 1
 ObID_Dust       rs.b 1
                 rs.b 1
 ObID_AttrctRing rs.b 1
                 rs.b 1
-ObID_SSPlayer   rs.b 1
-ObID_DrownBbls  rs.b 1
-ObID_LZPole     rs.b 1
-ObID_LZFlpDoor  rs.b 1
-ObID_Sign       rs.b 1
-ObID_TitleSonic rs.b 1
-ObID_TitlePSBTM rs.b 1
-                rs.b 1
-ObID_GHZBridge  rs.b 1
-ObID_SYZLamp    rs.b 1
-ObID_FrBllSpn   rs.b 1
-ObID_FireBall   rs.b 1
-ObID_SwingPtfm  rs.b 1
-ObID_LZHarpoon  rs.b 1
-ObID_GHZHelix   rs.b 1
-ObID_Platform   rs.b 1
 ; --------------------------------------------------
 
 ; --------------------------------------------------
