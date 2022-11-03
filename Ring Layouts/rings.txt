@@ -17,4 +17,3 @@ sbz1.bin
 sbz2.bin
 sbz3.bin
 fz.bin
-ending.bin

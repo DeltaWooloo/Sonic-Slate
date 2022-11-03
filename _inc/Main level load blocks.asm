@@ -31,8 +31,4 @@
 	dc.l Blk16_SBZ+$F000000
 	dc.l Blk256_SBZ
 	dc.b 0,	$86, PalID_SBZ1, PalID_SBZ1
-	dc.l Kos_GHZ	; main load block for ending
-	dc.l Blk16_GHZ
-	dc.l Blk256_GHZ
-	dc.b 0,	$86, PalID_Ending, PalID_Ending
 	even

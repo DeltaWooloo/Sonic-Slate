@@ -7,4 +7,3 @@
 	dc.w Debug_SLZ-DebugList
 	dc.w Debug_SYZ-DebugList
 	dc.w Debug_SBZ-DebugList
-	dc.w Debug_Ending-DebugList

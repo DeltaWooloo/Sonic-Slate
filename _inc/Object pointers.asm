@@ -3,7 +3,7 @@
 ; ---------------------------------------------------------------------------
 	dc.l Obj01, DeleteObject,	Obj03, DeleteObject
 	dc.l SpinDash_dust, DeleteObject, Obj07, DeleteObject
-	dc.l Obj09, Obj0A, Obj0B, Obj0C
+	dc.l DeleteObject, Obj0A, Obj0B, Obj0C
 	dc.l Obj0D, Obj0E, Obj0F, DeleteObject
 	dc.l Obj11, Obj12, Obj13, Obj14
 	dc.l Obj15, Obj16, Obj17, Obj18
@@ -19,7 +19,7 @@
 	dc.l Obj3D, Obj3E, Obj3F, Obj40
 	dc.l Obj41, Obj42, Obj43, Obj44
 	dc.l Obj45, Obj46, Obj47, Obj48
-	dc.l Obj49, Obj4A, Obj4B, Obj4C
+	dc.l Obj49, DeleteObject, Obj4B, Obj4C
 	dc.l Obj4D, Obj4E, Obj4F, Obj50
 	dc.l Obj51, Obj52, Obj53, Obj54
 	dc.l Obj55, Obj56, Obj57, Obj58
@@ -32,7 +32,7 @@
 	dc.l Obj71, Obj72, Obj73, Obj74
 	dc.l Obj75, Obj76, Obj77, Obj78
 	dc.l Obj79, Obj7A, Obj7B, Obj7C
-	dc.l Obj7D, Obj7E, Obj7F, Obj80
-	dc.l Obj81, Obj82, Obj83, Obj84
-	dc.l Obj85, Obj86, Obj87, Obj88
-	dc.l Obj89, Obj8A, Obj8B, Obj8C
+	dc.l Obj7D, DeleteObject, DeleteObject, DeleteObject
+	dc.l DeleteObject, Obj82, Obj83, Obj84
+	dc.l Obj85, Obj86, DeleteObject, DeleteObject
+	dc.l DeleteObject, Obj8A, DeleteObject, DeleteObject

@@ -10,13 +10,11 @@
 	dc.w PLC_SYZ-ArtLoadCues, PLC_SYZ2-ArtLoadCues
 	dc.w PLC_SBZ-ArtLoadCues, PLC_SBZ2-ArtLoadCues
 	dc.w PLC_TitleCard-ArtLoadCues,	PLC_Boss-ArtLoadCues
-	dc.w PLC_Signpost-ArtLoadCues, PLC_SpeStage-ArtLoadCues
+	dc.w PLC_Signpost-ArtLoadCues
 	dc.w PLC_GHZAnimals-ArtLoadCues, PLC_LZAnimals-ArtLoadCues
 	dc.w PLC_MZAnimals-ArtLoadCues, PLC_SLZAnimals-ArtLoadCues
 	dc.w PLC_SYZAnimals-ArtLoadCues, PLC_SBZAnimals-ArtLoadCues
-	dc.w PLC_SpeStResult-ArtLoadCues, PLC_Ending-ArtLoadCues
-	dc.w PLC_TryAgain-ArtLoadCues, PLC_EggmanSBZ2-ArtLoadCues
-	dc.w PLC_FZBoss-ArtLoadCues
+	dc.w PLC_EggmanSBZ2-ArtLoadCues, PLC_FZBoss-ArtLoadCues
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - standard block 1
 ; ---------------------------------------------------------------------------
@@ -312,50 +310,6 @@ PLC_Signpost:	dc.w 2
 		dc.l Nem_BigFlash	; giant	ring flash effect
 		dc.w $8C40
 ; ---------------------------------------------------------------------------
-; Pattern load cues - special stage
-; ---------------------------------------------------------------------------
-PLC_SpeStage:	dc.w $10
-		dc.l Nem_SSBgCloud	; bubble and cloud background
-		dc.w 0
-		dc.l Nem_SSBgFish	; bird and fish	background
-		dc.w $A20
-		dc.l Nem_SSWalls	; walls
-		dc.w $2840
-		dc.l Nem_Bumper		; bumper
-		dc.w $4760
-		dc.l Nem_SSGOAL		; GOAL block
-		dc.w $4A20
-		dc.l Nem_SSUpDown	; UP and DOWN blocks
-		dc.w $4C60
-		dc.l Nem_SSRBlock	; R block
-		dc.w $5E00
-		dc.l Nem_SS1UpBlock	; 1UP block
-		dc.w $6E00
-		dc.l Nem_SSEmStars	; emerald collection stars
-		dc.w $7E00
-		dc.l Nem_SSRedWhite	; red and white	block
-		dc.w $8E00
-		dc.l Nem_SSGhost	; ghost	block
-		dc.w $9E00
-		dc.l Nem_SSWBlock	; W block
-		dc.w $AE00
-		dc.l Nem_SSGlass	; glass	block
-		dc.w $BE00
-		dc.l Nem_SSEmerald	; emeralds
-		dc.w $EE00
-		dc.l Nem_SSZone1	; ZONE 1 block
-		dc.w $F2E0
-		dc.l Nem_SSZone2	; ZONE 2 block
-		dc.w $F400
-		dc.l Nem_SSZone3	; ZONE 3 block
-		dc.w $F520
-		dc.l Nem_SSZone4	; ZONE 4 block
-		dc.w $F2E0
-		dc.l Nem_SSZone5	; ZONE 5 block
-		dc.w $F400
-		dc.l Nem_SSZone6	; ZONE 6 block
-		dc.w $F520
-; ---------------------------------------------------------------------------
 ; Pattern load cues - GHZ animals
 ; ---------------------------------------------------------------------------
 PLC_GHZAnimals:	dc.w 1
@@ -403,52 +357,6 @@ PLC_SBZAnimals:	dc.w 1
 		dc.w $B000
 		dc.l Nem_Chicken	; chicken
 		dc.w $B240
-; ---------------------------------------------------------------------------
-; Pattern load cues - special stage results screen
-; ---------------------------------------------------------------------------
-PLC_SpeStResult:dc.w 1
-		dc.l Nem_ResultEm	; emeralds
-		dc.w $A820
-		dc.l Nem_MiniSonic	; mini Sonic
-		dc.w $AA20
-; ---------------------------------------------------------------------------
-; Pattern load cues - ending sequence
-; ---------------------------------------------------------------------------
-PLC_Ending:	dc.w $B
-		dc.l Nem_Stalk		; flower stalk
-		dc.w $6B00
-		dc.l Nem_EndFlower	; flowers
-		dc.w $7400
-		dc.l Nem_EndEm		; emeralds
-		dc.w $78A0
-		dc.l Nem_EndSonic	; Sonic
-		dc.w $7C20
-		dc.l Nem_Rabbit		; rabbit
-		dc.w $AA60
-		dc.l Nem_Chicken	; chicken
-		dc.w $ACA0
-		dc.l Nem_BlackBird	; blackbird
-		dc.w $AE60
-		dc.l Nem_Seal		; seal
-		dc.w $B0A0
-		dc.l Nem_Pig		; pig
-		dc.w $B260
-		dc.l Nem_Flicky		; flicky
-		dc.w $B4A0
-		dc.l Nem_Squirrel	; squirrel
-		dc.w $B660
-		dc.l Nem_EndStH		; "SONIC THE HEDGEHOG"
-		dc.w $B8A0
-; ---------------------------------------------------------------------------
-; Pattern load cues - "TRY AGAIN" and "END" screens
-; ---------------------------------------------------------------------------
-PLC_TryAgain:	dc.w 2
-		dc.l Nem_EndEm		; emeralds
-		dc.w $78A0
-		dc.l Nem_TryAgain	; Eggman
-		dc.w $7C20
-		dc.l Nem_CreditText	; credits alphabet
-		dc.w $B400
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - Eggman on SBZ 2
 ; ---------------------------------------------------------------------------

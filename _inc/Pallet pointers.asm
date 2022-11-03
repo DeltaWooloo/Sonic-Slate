@@ -28,9 +28,6 @@
 	dc.l Pal_SBZ1
 	dc.w $FB20
 	dc.w $17
-	dc.l Pal_Special
-	dc.w $FB00
-	dc.w $1F
 	dc.l Pal_LZWater
 	dc.w $FB00
 	dc.w $1F
@@ -49,12 +46,3 @@
 	dc.l Pal_SBZ3SonWat
 	dc.w $FB00
 	dc.w 7
-	dc.l Pal_SpeResult
-	dc.w $FB00
-	dc.w $1F
-	dc.l Pal_SpeContinue
-	dc.w $FB00
-	dc.w $F
-	dc.l Pal_Ending
-	dc.w $FB00
-	dc.w $1F

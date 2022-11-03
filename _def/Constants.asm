@@ -4,12 +4,7 @@
     rsreset
 ScnID_SEGA      rs.l 1
 ScnID_Title     rs.l 1
-ScnID_Demo      rs.l 1
 ScnID_Level     rs.l 1
-ScnID_Special   rs.l 1
-ScnID_Continue  rs.l 1
-ScnID_Ending    rs.l 1
-ScnID_Credits   rs.l 1
 ; --------------------------------------------------
 
 ; --------------------------------------------------
@@ -25,16 +20,12 @@ PalID_MZ        rs.b 1
 PalID_SLZ       rs.b 1
 PalID_SYZ       rs.b 1
 PalID_SBZ1      rs.b 1
-PalID_Special   rs.b 1
 PalID_LZWater   rs.b 1
 PalID_SBZ3      rs.b 1
 PalID_SBZ3Water rs.b 1
 PalID_SBZ2      rs.b 1
 PalID_LZSonic   rs.b 1
 PalID_SBZ3Sonic rs.b 1
-PalID_SSResults rs.b 1
-PalID_Continue  rs.b 1
-PalID_Ending    rs.b 1
 ; --------------------------------------------------
 
 ; --------------------------------------------------
@@ -60,16 +51,12 @@ PLCID_SBZ2      rs.b 1
 PLCID_TtlCard   rs.b 1
 PLCID_Boss      rs.b 1
 PLCID_LevelEnd  rs.b 1
-PLCID_Special   rs.b 1
 PLCID_GHZAnimals    rs.b 1
 PLCID_LZAnimals     rs.b 1
 PLCID_MZAnimals     rs.b 1
 PLCID_SLZAnimals    rs.b 1
 PLCID_SYZAnimals    rs.b 1
 PLCID_SBZAnimals    rs.b 1
-PLCID_SSResults rs.b 1
-PLCID_Ending    rs.b 1
-PLCID_TryAgain  rs.b 1
 PLCID_SBZ2Ctscn rs.b 1
 PLCID_FZBoss    rs.b 1
 ; --------------------------------------------------
