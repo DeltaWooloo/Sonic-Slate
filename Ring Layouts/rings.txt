@@ -1,3 +1,2 @@
 ghz1.bin
 ghz2.bin
-ghz3.bin

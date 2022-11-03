@@ -2915,7 +2915,7 @@ LevelSelect:
 		andi.b	#$F0,($FFFFF605).w ; is	A, B, C, or Start pressed?
 		beq.s	LevelSelect	; if not, branch
 		move.w	($FFFFFF82).w,d0
-		cmpi.w	#3,d0		; have you selected item $14 (sound test)?
+		cmpi.w	#2,d0		; have you selected item $14 (sound test)?
 		bne.s	LevSel_Level	; if not, go to	Level subroutine
 		move.w	($FFFFFF84).w,d0
 		addi.w	#$80,d0
@@ -2989,13 +2989,13 @@ LevSel_UpDown:
 		beq.s	LevSel_Down	; if not, branch
 		subq.w	#1,d0		; move up 1 selection
 		bcc.s	LevSel_Down
-		moveq	#3,d0		; if selection moves below 0, jump to selection	$14
+		moveq	#2,d0		; if selection moves below 0, jump to selection	$14
 
 LevSel_Down:
 		btst	#1,d1		; is down pressed?
 		beq.s	LevSel_Refresh	; if not, branch
 		addq.w	#1,d0		; move down 1 selection
-		cmpi.w	#4,d0
+		cmpi.w	#3,d0
 		bcs.s	LevSel_Refresh
 		moveq	#0,d0		; if selection moves above $14,	jump to	selection 0
 
@@ -3006,7 +3006,7 @@ LevSel_Refresh:
 ; ===========================================================================
 
 LevSel_SndTest:				; XREF: LevSelControls
-		cmpi.w	#3,($FFFFFF82).w ; is	item $14 selected?
+		cmpi.w	#2,($FFFFFF82).w ; is	item $14 selected?
 		bne.s	LevSel_NoMove	; if not, branch
 		move.b	($FFFFF605).w,d1
 		andi.b	#$C,d1		; is left/right	pressed?
@@ -3046,7 +3046,7 @@ LevSelTextLoad:				; XREF: TitleScreen
 		lea	($C00000).l,a6
 		move.l	#$62100003,d4	; screen position (text)
 		move.w	#$E680,d3	; VRAM setting
-		moveq	#3,d1		; number of lines of text
+		moveq	#2,d1		; number of lines of text
 
 loc_34FE:				; XREF: LevSelTextLoad+26j
 		move.l	d4,4(a6)
@@ -3070,12 +3070,12 @@ loc_34FE:				; XREF: LevSelTextLoad+26j
 		move.l	d4,4(a6)
 		bsr.w	LevSel_ChgLine
 		move.w	#$E680,d3
-		cmpi.w	#3,($FFFFFF82).w
+		cmpi.w	#2,($FFFFFF82).w
 		bne.s	loc_3550
 		move.w	#$C680,d3
 
 loc_3550:
-		move.l	#$64300003,($C00004).l ; screen	position (sound	test)
+		move.l	#$63300003,($C00004).l ; screen	position (sound	test)
 		move.w	($FFFFFF84).w,d0
 		addi.w	#$80,d0
 		move.b	d0,d2
@@ -3630,7 +3630,9 @@ LevelSizeLoad:				; XREF: TitleScreen; Level
 ; ---------------------------------------------------------------------------
 ; Level size array and start location array
 ; ---------------------------------------------------------------------------
-LevelSizeArray:	incbin	misc\lvl_size.bin
+LevelSizeArray:
+        dc.w $0004, $0000, $24BF, $0000, $0300, $0060 ; Act 1
+        dc.w $0004, $0000, $1EBF, $0000, $0300, $0060 ; Act 2
 		even
 
 ; ===========================================================================
@@ -3711,28 +3713,6 @@ loc_60F8:
 
 StartLocArray:	incbin	startpos\ghz1.bin
 		incbin	startpos\ghz2.bin
-		incbin	startpos\ghz3.bin
-		incbin	startpos\ghz4.bin
-		incbin	startpos\lz1.bin
-		incbin	startpos\lz2.bin
-		incbin	startpos\lz3.bin
-		incbin	startpos\lz4.bin
-		incbin	startpos\mz1.bin
-		incbin	startpos\mz2.bin
-		incbin	startpos\mz3.bin
-		incbin	startpos\mz4.bin
-		incbin	startpos\slz1.bin
-		incbin	startpos\slz2.bin
-		incbin	startpos\slz3.bin
-		incbin	startpos\slz4.bin
-		incbin	startpos\syz1.bin
-		incbin	startpos\syz2.bin
-		incbin	startpos\syz3.bin
-		incbin	startpos\syz4.bin
-		incbin	startpos\sbz1.bin
-		incbin	startpos\sbz2.bin
-		incbin	startpos\sbz3.bin
-		incbin	startpos\sbz4.bin
 		even
 
 ; ===========================================================================
@@ -5288,7 +5268,6 @@ Resize_GHZ:				; XREF: Resize_Index
 ; ===========================================================================
 Resize_GHZx:	dc.w Resize_GHZ1-Resize_GHZx
 		dc.w Resize_GHZ2-Resize_GHZx
-		dc.w Resize_GHZ3-Resize_GHZx
 ; ===========================================================================
 
 Resize_GHZ1:
@@ -5314,76 +5293,6 @@ Resize_GHZ2:
 		move.w	#$300,($FFFFF726).w
 
 locret_6E3A:
-		rts	
-; ===========================================================================
-
-Resize_GHZ3:
-		moveq	#0,d0
-		move.b	($FFFFF742).w,d0
-		move.w	off_6E4A(pc,d0.w),d0
-		jmp	off_6E4A(pc,d0.w)
-; ===========================================================================
-off_6E4A:	dc.w Resize_GHZ3main-off_6E4A
-		dc.w Resize_GHZ3boss-off_6E4A
-		dc.w Resize_GHZ3end-off_6E4A
-; ===========================================================================
-
-Resize_GHZ3main:
-		move.w	#$300,($FFFFF726).w
-		cmpi.w	#$380,($FFFFF700).w
-		bcs.s	locret_6E96
-		move.w	#$310,($FFFFF726).w
-		cmpi.w	#$960,($FFFFF700).w
-		bcs.s	locret_6E96
-		cmpi.w	#$280,($FFFFF704).w
-		bcs.s	loc_6E98
-		move.w	#$400,($FFFFF726).w
-		cmpi.w	#$1380,($FFFFF700).w
-		bcc.s	loc_6E8E
-		move.w	#$4C0,($FFFFF726).w
-		move.w	#$4C0,($FFFFF72E).w
-
-loc_6E8E:
-		cmpi.w	#$1700,($FFFFF700).w
-		bcc.s	loc_6E98
-
-locret_6E96:
-		rts	
-; ===========================================================================
-
-loc_6E98:
-		move.w	#$300,($FFFFF726).w
-		addq.b	#2,($FFFFF742).w
-		rts	
-; ===========================================================================
-
-Resize_GHZ3boss:
-		cmpi.w	#$960,($FFFFF700).w
-		bcc.s	loc_6EB0
-		subq.b	#2,($FFFFF742).w
-
-loc_6EB0:
-		cmpi.w	#$2960,($FFFFF700).w
-		bcs.s	locret_6EE8
-		bsr.w	SingleObjLoad
-		bne.s	loc_6ED0
-		move.b	#$3D,0(a1)	; load GHZ boss	object
-		move.w	#$2A60,8(a1)
-		move.w	#$280,$C(a1)
-
-loc_6ED0:
-		move.w	#$8C,d0
-		bsr.w	PlaySound	; play boss music
-		move.b	#1,($FFFFF7AA).w ; lock	screen
-		addq.b	#2,($FFFFF742).w
-; ===========================================================================
-
-locret_6EE8:
-		rts	
-; ===========================================================================
-
-Resize_GHZ3end:
-		move.w	($FFFFF700).w,($FFFFF728).w
 		rts	
 ; ===========================================================================
 
@@ -33633,8 +33542,6 @@ Art_GhzFlower2:	incbin	artunc\ghzflows.bin	; GHZ small flower
 ; ---------------------------------------------------------------------------
 Level_Index:	dc.l Level_GHZ1, Level_GHZbg, byte_68D70	; MJ: Table needs to be read in long-word as the layouts are now bigger
 		dc.l Level_GHZ2, Level_GHZbg, byte_68E3C
-		dc.l Level_GHZ3, Level_GHZbg, byte_68F84
-		dc.l byte_68F88, byte_68F88, byte_68F88
 
 Level_GHZ1:	incbin	levels\ghz1.bin
 		even
@@ -33642,12 +33549,8 @@ byte_68D70:	dc.b 0,	0, 0, 0
 Level_GHZ2:	incbin	levels\ghz2.bin
 		even
 byte_68E3C:	dc.b 0,	0, 0, 0
-Level_GHZ3:	incbin	levels\ghz3.bin
-		even
 Level_GHZbg:	incbin	levels\ghzbg.bin
 		even
-byte_68F84:	dc.b 0,	0, 0, 0
-byte_68F88:	dc.b 0,	0, 0, 0
 
 ; ---------------------------------------------------------------------------
 ; Animated uncompressed giant ring graphics
@@ -33660,14 +33563,10 @@ Art_BigRing:	incbin	artunc\bigring.bin
 ; ---------------------------------------------------------------------------
 ObjPos_Index:	dc.w ObjPos_GHZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_GHZ2-ObjPos_Index, ObjPos_Null-ObjPos_Index
-		dc.w ObjPos_GHZ3-ObjPos_Index, ObjPos_Null-ObjPos_Index
-		dc.w ObjPos_GHZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.b $FF, $FF, 0, 0, 0,	0
 ObjPos_GHZ1:	incbin	objpos\ghz1.bin
 		even
 ObjPos_GHZ2:	incbin	objpos\ghz2.bin
-		even
-ObjPos_GHZ3:	incbin	objpos\ghz3.bin
 		even
 ObjPos_Null:	dc.b $FF, $FF, 0, 0, 0,	0
 ; ---------------------------------------------------------------------------
@@ -33675,13 +33574,9 @@ ObjPos_Null:	dc.b $FF, $FF, 0, 0, 0,	0
 ; ---------------------------------------------------------------------------
 RingPos_Index:	dc.w Rings_GHZ1-RingPos_Index, Rings_Null-RingPos_Index
 		dc.w Rings_GHZ2-RingPos_Index, Rings_Null-RingPos_Index
-		dc.w Rings_GHZ3-RingPos_Index, Rings_Null-RingPos_Index
-		dc.w Rings_GHZ1-RingPos_Index, Rings_Null-RingPos_Index
 Rings_GHZ1:	incbin	"Ring Layouts/ghz1_INDIVIDUAL.bin"
 		even
 Rings_GHZ2:	incbin	"Ring Layouts/ghz2_INDIVIDUAL.bin"
-		even
-Rings_GHZ3:	incbin	"Ring Layouts/ghz3_INDIVIDUAL.bin"
 		even
 Rings_Null:	dc.b $FF, $FF, 0, 0
 
