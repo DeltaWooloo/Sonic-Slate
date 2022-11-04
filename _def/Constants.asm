@@ -18,7 +18,7 @@ ScnID_Level     rs.l 1
 PalID_Title     rs.b 1
 PalID_LevSel    rs.b 1
 PalID_Sonic     rs.b 1
-PalID_GHZ       rs.b 1
+PalID_TZ       rs.b 1
 ; --------------------------------------------------
 
 ; --------------------------------------------------
@@ -29,11 +29,11 @@ PLCID_Main1         rs.b 1
 PLCID_Main2         rs.b 1
 PLCID_Explode       rs.b 1
 PLCID_GameOver      rs.b 1
-PLCID_GHZ1          rs.b 1
-PLCID_GHZ2          rs.b 1
+PLCID_TZ1          rs.b 1
+PLCID_TZ2          rs.b 1
 PLCID_TtlCard       rs.b 1
 PLCID_LevelEnd      rs.b 1
-PLCID_GHZAnimals    rs.b 1
+PLCID_TZAnimals    rs.b 1
 ; --------------------------------------------------
 
 ; --------------------------------------------------

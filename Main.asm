@@ -19,7 +19,7 @@ Vectors:	dc.l $FFFE00, EntryPoint, BusError, AddressError
 		dc.l ErrorExcept, ErrorExcept, ErrorExcept, ErrorExcept
 		dc.l ErrorExcept, ErrorExcept, ErrorExcept, ErrorExcept
 		dc.l ErrorExcept, ErrorTrap, ErrorTrap,	ErrorTrap
-		dc.l PalToCRAM,	ErrorTrap, loc_B10, ErrorTrap
+		dc.l HInt,	ErrorTrap, VInt, ErrorTrap
 		dc.l ErrorTrap,	ErrorTrap, ErrorTrap, ErrorTrap
 		dc.l ErrorTrap,	ErrorTrap, ErrorTrap, ErrorTrap
 		dc.l ErrorTrap,	ErrorTrap, ErrorTrap, ErrorTrap
@@ -37,11 +37,11 @@ Checksum:	dc.w 0
 		dc.b 'J               ' ; I/O support
 RomStartLoc:	dc.l StartOfRom		; ROM start
 RomEndLoc:	dc.l EndOfRom-1		; ROM end
-RamStartLoc:	dc.l $FF0000		; RAM start
-RamEndLoc:	dc.l $FFFFFF		; RAM end
+RamStartLoc:	dc.l RAM_Start		; RAM start
+RamEndLoc:	dc.l RAM_End		; RAM end
 SRAMSupport:	dc.l $20202020		; change to $5241E020 to create	SRAM
-		dc.l $20202020		; SRAM start
-		dc.l $20202020		; SRAM end
+		dc.l SRAM_Start		; SRAM start
+		dc.l SRAM_End		; SRAM end
 Notes:		dc.b '                                                    '
 Region:		dc.b 'JUE             ' ; Region
 
@@ -52,9 +52,9 @@ ErrorTrap:
 ; ===========================================================================
 
 EntryPoint:
-		tst.l	($A10008).l	; test port A control
+		tst.l	(IO_Ctrl1-1).l	; test port A control
 		bne.s	PortA_Ok
-		tst.w	($A1000C).l	; test port C control
+		tst.w	(IO_CtrlEXT-1).l	; test port C control
 
 PortA_Ok:
 		bne.s	PortC_Ok
@@ -125,13 +125,13 @@ PortC_Ok:
 ; ===========================================================================
 SetupValues:	dc.w $8000		; XREF: PortA_Ok
 		dc.w $3FFF
-		dc.w $100
+		dc.w VReg_Next
 
-		dc.l $A00000		; start	of Z80 RAM
-		dc.l $A11100		; Z80 bus request
-		dc.l $A11200		; Z80 reset
-		dc.l $C00000
-		dc.l $C00004		; address for VDP registers
+		dc.l Z80_RAM		; start	of Z80 RAM
+		dc.l Z80_BusLn		; Z80 bus request
+		dc.l Z80_ResetLn		; Z80 reset
+		dc.l VDP_Data
+		dc.l VDP_Control		; address for VDP registers
 
 		dc.b 4,	$14, $30, $3C	; values for VDP registers
 		dc.b 7,	$6C, 0,	0
@@ -140,19 +140,46 @@ SetupValues:	dc.w $8000		; XREF: PortA_Ok
 		dc.b 1,	0, 0, $FF
 		dc.b $FF, 0, 0,	$80
 
-		dc.l $40000080
+		dc.l VComm_VRAMDMA
 
-		dc.b $AF, 1, $D9, $1F, $11, $27, 0, $21, $26, 0, $F9, $77 ; Z80	instructions
-		dc.b $ED, $B0, $DD, $E1, $FD, $E1, $ED,	$47, $ED, $4F
-		dc.b $D1, $E1, $F1, 8, $D9, $C1, $D1, $E1, $F1,	$F9, $F3
-		dc.b $ED, $56, $36, $E9, $E9
+		cpu Z80
+		obj 0
+		xor	a
+		ld	bc,((Z80_RAMEnd-Z80_RAM)-Init_Z80End)-1
+		ld	de,Init_Z80End+1
+		ld	hl,Init_Z80End
+		ld	sp,hl
+		ld	(hl),a
+		ldir
+		pop	ix
+		pop	iy
+		ld	i,a
+		ld	r,a
+		pop	de
+		pop	hl
+		pop	af
+		ex	af,af
+		exx
+		pop	bc
+		pop	de
+		pop	hl
+		pop	af
+		ld	sp,hl
+		di
+		im	1
+		ld	(hl),0E9h
+		jp	(hl)
+Init_Z80End:
+		cpu 68000
+		objend
 
 		dc.w $8104		; value	for VDP	display	mode
 		dc.w $8F02		; value	for VDP	increment
-		dc.l $C0000000		; value	for CRAM write mode
-		dc.l $40000010
+		dc.l VComm_CRAMWrite		; value	for CRAM write mode
+		dc.l VComm_VSRAMWrite
 
 		dc.b $9F, $BF, $DF, $FF	; values for PSG channel volumes
+		even
 ; ===========================================================================
 
 GameProgram:
@@ -165,13 +192,13 @@ GameProgram:
 loc_348:
 		move.l	d7,(a6)+
 		dbf	d6,loc_348
-		move.b	($A10001).l,d0
+		move.b	(Sys_Version).l,d0
 		andi.b	#$C0,d0
 		move.b	d0,($FFFFFFF8).w
 		move.l	#'init',($FFFFFFFC).w ; set flag so checksum won't be run again
 
 GameInit:
-		lea	($FF0000).l,a6
+		lea	(RAM_Start).l,a6
 		moveq	#0,d7
 		move.w	#$3F7F,d6
 
@@ -218,27 +245,27 @@ Art_Text:	incbin	"Misc/Debug Font.unc"	; text used in level select and debug mod
 
 ; ===========================================================================
 
-loc_B10:				; XREF: Vectors
+VInt:				; XREF: Vectors
 		movem.l	d0-a6,-(sp)
 		tst.b	($FFFFF62A).w
 		beq.s	loc_B88
-		move.w	($C00004).l,d0
-		move.l	#$40000010,($C00004).l
-		move.l	($FFFFF616).w,($C00000).l
+		move.w	(VDP_Control).l,d0
+		move.l	#VComm_VSRAMWrite,(VDP_Control).l
+		move.l	($FFFFF616).w,(VDP_Data).l
 		btst	#6,($FFFFFFF8).w
-		beq.s	loc_B42
+		beq.s	@NotPAL
 		move.w	#$700,d0
 
-loc_B3E:
-		dbf	d0,loc_B3E
+@PALWait:
+		dbf	d0,@PALWait
 
-loc_B42:
+@NotPAL:
 		move.b	($FFFFF62A).w,d0
 		move.b	#0,($FFFFF62A).w
 		move.w	#1,($FFFFF644).w
 		andi.w	#$3E,d0
-		move.w	off_B6E(pc,d0.w),d0
-		jsr	off_B6E(pc,d0.w)
+		move.w	VInt_Index(pc,d0.w),d0
+		jsr	VInt_Index(pc,d0.w)
 
 loc_B5E:				; XREF: loc_B88
 		jsr	sub_71B4C
@@ -248,16 +275,16 @@ loc_B64:				; XREF: loc_D50
 		movem.l	(sp)+,d0-a6
 		rte	
 ; ===========================================================================
-off_B6E:	dc.w loc_B88-off_B6E, loc_C32-off_B6E
-		dc.w loc_C44-off_B6E, loc_C5E-off_B6E
-		dc.w loc_C6E-off_B6E, loc_DA6-off_B6E
-		dc.w loc_E72-off_B6E, loc_F8A-off_B6E
-		dc.w loc_C64-off_B6E, loc_F9A-off_B6E
-		dc.w loc_C36-off_B6E, loc_FA6-off_B6E
-		dc.w loc_E72-off_B6E
+VInt_Index:	dc.w loc_B88-VInt_Index, loc_C32-VInt_Index
+		dc.w loc_C44-VInt_Index, loc_C5E-VInt_Index
+		dc.w loc_C6E-VInt_Index, loc_DA6-VInt_Index
+		dc.w loc_E72-VInt_Index, loc_F8A-VInt_Index
+		dc.w loc_C64-VInt_Index, loc_F9A-VInt_Index
+		dc.w loc_C36-VInt_Index, loc_FA6-VInt_Index
+		dc.w loc_E72-VInt_Index
 ; ===========================================================================
 
-loc_B88:				; XREF: loc_B10; off_B6E
+loc_B88:				; XREF: VInt; VInt_Index
 		cmpi.b	#$80|ScnID_Level,($FFFFF600).w
 		beq.s	loc_B9A
 		cmpi.b	#ScnID_Level,($FFFFF600).w
@@ -266,7 +293,7 @@ loc_B88:				; XREF: loc_B10; off_B6E
 loc_B9A:
 		cmpi.b	#1,($FFFFFE10).w ; is level LZ ?
 		bne.w	loc_B5E		; if not, branch
-		move.w	($C00004).l,d0
+		move.w	(VDP_Control).l,d0
 		btst	#6,($FFFFFFF8).w
 		beq.s	loc_BBA
 		move.w	#$700,d0
@@ -276,14 +303,11 @@ loc_BB6:
 
 loc_BBA:
 		move.w	#1,($FFFFF644).w
-		move.w	#$100,($A11100).l
-
-loc_BC8:
-		btst	#0,($A11100).l
-		bne.s	loc_BC8
+		Z80_Stop
+		Z80_Wait
 		tst.b	($FFFFF64E).w
 		bne.s	loc_BFE
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
@@ -294,7 +318,7 @@ loc_BC8:
 ; ===========================================================================
 
 loc_BFE:				; XREF: loc_BC8
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9540,(a5)
 		move.w	#$977F,(a5)
@@ -305,14 +329,14 @@ loc_BFE:				; XREF: loc_BC8
 loc_C22:				; XREF: loc_BC8
 		move.w	($FFFFF624).w,(a5)
         move.b	($FFFFF625).w,($FFFFFE07).w
-		move.w	#0,($A11100).l
+		Z80_Start
 		bra.w	loc_B5E
 ; ===========================================================================
 
-loc_C32:				; XREF: off_B6E
+loc_C32:				; XREF: VInt_Index
 		bsr.w	sub_106E
 
-loc_C36:				; XREF: off_B6E
+loc_C36:				; XREF: VInt_Index
 		tst.w	($FFFFF614).w
 		beq.w	locret_C42
 		subq.w	#1,($FFFFF614).w
@@ -321,7 +345,7 @@ locret_C42:
 		rts	
 ; ===========================================================================
 
-loc_C44:				; XREF: off_B6E
+loc_C44:				; XREF: VInt_Index
 		bsr.w	sub_106E
 		bsr.w	sub_6886
 		bsr.w	sub_1642
@@ -333,22 +357,19 @@ locret_C5C:
 		rts	
 ; ===========================================================================
 
-loc_C5E:				; XREF: off_B6E
+loc_C5E:				; XREF: VInt_Index
 		bsr.w	sub_106E
 		rts	
 ; ===========================================================================
 
-loc_C64:				; XREF: off_B6E
-loc_C6E:				; XREF: off_B6E
-		move.w	#$100,($A11100).l ; stop the Z80
-
-loc_C76:
-		btst	#0,($A11100).l	; has Z80 stopped?
-		bne.s	loc_C76		; if not, branch
+loc_C64:				; XREF: VInt_Index
+loc_C6E:				; XREF: VInt_Index
+		Z80_Stop
+		Z80_Wait
 		bsr.w	ReadJoypads
 		tst.b	($FFFFF64E).w
 		bne.s	loc_CB0
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
@@ -359,7 +380,7 @@ loc_C76:
 ; ===========================================================================
 
 loc_CB0:				; XREF: loc_C76
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9540,(a5)
 		move.w	#$977F,(a5)
@@ -370,14 +391,14 @@ loc_CB0:				; XREF: loc_C76
 loc_CD4:				; XREF: loc_C76
 		move.w	($FFFFF624).w,(a5)
 		move.b	($FFFFF625).w,($FFFFFE07).w
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96E69500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7C00,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
@@ -387,7 +408,7 @@ loc_CD4:				; XREF: loc_C76
 		jsr	(ProcessDMAQueue).l
 
 loc_D50:
-		move.w	#0,($A11100).l
+		Z80_Start
 		movem.l	($FFFFF700).w,d0-d7
 		movem.l	d0-d7,($FFFFFF10).w
 		movem.l	($FFFFF754).w,d0-d1
@@ -405,7 +426,7 @@ loc_D50:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-VInt_UpdateArt:				; XREF: loc_D50; PalToCRAM
+VInt_UpdateArt:				; XREF: loc_D50; HInt
 		bsr.w	LoadTilesAsYouMove
 		jsr	AniArt_Load
 		jsr	HudUpdate
@@ -415,35 +436,32 @@ VInt_UpdateArt:				; XREF: loc_D50; PalToCRAM
 
 ; ===========================================================================
 
-loc_DA6:				; XREF: off_B6E
-		move.w	#$100,($A11100).l ; stop the Z80
-
-loc_DAE:
-		btst	#0,($A11100).l	; has Z80 stopped?
-		bne.s	loc_DAE		; if not, branch
+loc_DA6:				; XREF: VInt_Index
+		Z80_Stop
+		Z80_Wait
 		bsr.w	ReadJoypads
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$C000,(a5)
 		move.w	#$80,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96E69500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7C00,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		move.w	#0,($A11100).l
+		Z80_Start
 		jsr	(ProcessDMAQueue).l
 
 loc_E64:
@@ -455,16 +473,13 @@ locret_E70:
 		rts	
 ; ===========================================================================
 
-loc_E72:				; XREF: off_B6E
-		move.w	#$100,($A11100).l ; stop the Z80
-
-loc_E7A:
-		btst	#0,($A11100).l	; has Z80 stopped?
-		bne.s	loc_E7A		; if not, branch
+loc_E72:				; XREF: VInt_Index
+		Z80_Stop
+		Z80_Wait
 		bsr.w	ReadJoypads
 		tst.b	($FFFFF64E).w
 		bne.s	loc_EB4
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
@@ -475,7 +490,7 @@ loc_E7A:
 ; ===========================================================================
 
 loc_EB4:				; XREF: loc_E7A
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9540,(a5)
 		move.w	#$977F,(a5)
@@ -486,7 +501,7 @@ loc_EB4:				; XREF: loc_E7A
 loc_ED8:				; XREF: loc_E7A
 		move.w	($FFFFF624).w,(a5)
 		move.b	($FFFFF625).w,($FFFFFE07).w
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96E69500,(a5)
 
@@ -495,7 +510,7 @@ loc_EEE:
 		move.w	#$7C00,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
@@ -505,7 +520,7 @@ loc_EEE:
 		jsr	(ProcessDMAQueue).l
 
 loc_F54:
-		move.w	#0,($A11100).l	; start	the Z80
+		Z80_Start
 		movem.l	($FFFFF700).w,d0-d7
 		movem.l	d0-d7,($FFFFFF10).w
 		movem.l	($FFFFF754).w,d0-d1
@@ -517,49 +532,46 @@ loc_F54:
 		rts	
 ; ===========================================================================
 
-loc_F8A:				; XREF: off_B6E
+loc_F8A:				; XREF: VInt_Index
 		bsr.w	sub_106E
 		addq.b	#1,($FFFFF628).w
 		move.b	#$E,($FFFFF62A).w
 		rts	
 ; ===========================================================================
 
-loc_F9A:				; XREF: off_B6E
+loc_F9A:				; XREF: VInt_Index
 		bsr.w	sub_106E
 		move.w	($FFFFF624).w,(a5)
 		move.b	($FFFFF625).w,($FFFFFE07).w
 		bra.w	sub_1642
 ; ===========================================================================
 
-loc_FA6:				; XREF: off_B6E
-		move.w	#$100,($A11100).l ; stop the Z80
-
-loc_FAE:
-		btst	#0,($A11100).l	; has Z80 stopped?
-		bne.s	loc_FAE		; if not, branch
+loc_FA6:				; XREF: VInt_Index
+		Z80_Stop
+		Z80_Wait
 		bsr.w	ReadJoypads
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$C000,(a5)
 		move.w	#$80,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96E69500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7C00,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		move.w	#0,($A11100).l	; start	the Z80
+		Z80_Start
 		jsr	(ProcessDMAQueue).l
 
 loc_1060:
@@ -574,15 +586,12 @@ locret_106C:
 
 
 sub_106E:				; XREF: loc_C32; et al
-		move.w	#$100,($A11100).l ; stop the Z80
-
-loc_1076:
-		btst	#0,($A11100).l	; has Z80 stopped?
-		bne.s	loc_1076	; if not, branch
+		Z80_Stop
+		Z80_Wait
 		bsr.w	ReadJoypads
 		tst.b	($FFFFF64E).w
 		bne.s	loc_10B0
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
@@ -593,7 +602,7 @@ loc_1076:
 ; ===========================================================================
 
 loc_10B0:				; XREF: sub_106E
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9540,(a5)
 		move.w	#$977F,(a5)
@@ -602,21 +611,21 @@ loc_10B0:				; XREF: sub_106E
 		move.w	($FFFFF640).w,(a5)
 
 loc_10D4:				; XREF: sub_106E
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96E69500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7C00,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		move.w	#0,($A11100).l	; start	the Z80
+		Z80_Start
 		rts	
 ; End of function sub_106E
 
@@ -627,18 +636,16 @@ loc_10D4:				; XREF: sub_106E
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-PalToCRAM:
+HInt:
         tst.w    ($FFFFF644).w
         beq.s    locret_119C
         move.w    #0,($FFFFF644).w
         movem.l    d0-d1/a0-a2,-(sp)
  
-        lea    ($C00000).l,a1
+        lea    (VDP_Data).l,a1
         move.w    #$8ADF,4(a1)        ; Reset HInt timing
-        move.w  #$100,($A11100).l ; stop the Z80
-@z80loop:
-        btst    #0,($A11100).l
-        bne.s   @z80loop ; loop until it says it's stopped
+        Z80_Stop
+		Z80_Wait
         movea.l    ($FFFFF610).w,a2
         moveq    #$F,d0        ; adjust to push artifacts off screen
 @loop:
@@ -669,7 +676,7 @@ PalToCRAM:
         dbf    d1,@transferColors    ; repeat for number of colors
 
 @skipTransfer:
-        move.w  #0,($A11100).l    ; start the Z80
+        Z80_Start
         movem.l    (sp)+,d0-d1/a0-a2
         tst.b    ($FFFFF64F).w
         bne.s    loc_119E
@@ -678,14 +685,14 @@ locret_119C:
 		rte	
 ; ===========================================================================
 
-loc_119E:				; XREF: PalToCRAM
+loc_119E:				; XREF: HInt
 		clr.b	($FFFFF64F).w
 		movem.l	d0-a6,-(sp)
 		bsr.w	VInt_UpdateArt
 		jsr	sub_71B4C
 		movem.l	(sp)+,d0-a6
 		rte	
-; End of function PalToCRAM
+; End of function HInt
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	initialise joypads
@@ -695,16 +702,13 @@ loc_119E:				; XREF: PalToCRAM
 
 
 JoypadInit:				; XREF: GameClrRAM
-		move.w	#$100,($A11100).l ; stop the Z80
-
-Joypad_WaitZ80:
-		btst	#0,($A11100).l	; has the Z80 stopped?
-		bne.s	Joypad_WaitZ80	; if not, branch
+		Z80_Stop
+		Z80_Wait
 		moveq	#$40,d0
-		move.b	d0,($A10009).l	; init port 1 (joypad 1)
-		move.b	d0,($A1000B).l	; init port 2 (joypad 2)
-		move.b	d0,($A1000D).l	; init port 3 (extra)
-		move.w	#0,($A11100).l	; start	the Z80
+		move.b	d0,(IO_Ctrl1).l	; init port 1 (joypad 1)
+		move.b	d0,(IO_Ctrl2).l	; init port 2 (joypad 2)
+		move.b	d0,(IO_CtrlEXT).l	; init port 3 (extra)
+		Z80_Start
 		rts	
 ; End of function JoypadInit
 
@@ -717,7 +721,7 @@ Joypad_WaitZ80:
 
 ReadJoypads:
 		lea	($FFFFF604).w,a0 ; address where joypad	states are written
-		lea	($A10003).l,a1	; first	joypad port
+		lea	(IO_Data1).l,a1	; first	joypad port
 		bsr.s	Joypad_Read	; do the first joypad
 		addq.w	#2,a1		; do the second	joypad
 
@@ -748,8 +752,8 @@ Joypad_Read:
 
 
 VDPSetupGame:				; XREF: GameClrRAM; ChecksumError
-		lea	($C00004).l,a0
-		lea	($C00000).l,a1
+		lea	(VDP_Control).l,a0
+		lea	(VDP_Data).l,a1
 		lea	(VDPSetupArray).l,a2
 		moveq	#$12,d7
 
@@ -761,7 +765,7 @@ VDP_Loop:
 		move.w	d0,($FFFFF60C).w
 		move.w	#$8ADF,($FFFFF624).w
 		moveq	#0,d0
-		move.l	#$C0000000,($C00004).l ; set VDP to CRAM write
+		move.l	#$C0000000,(VDP_Control).l ; set VDP to CRAM write
 		move.w	#$3F,d7
 
 VDP_ClrCRAM:
@@ -771,12 +775,12 @@ VDP_ClrCRAM:
 		clr.l	($FFFFF616).w
 		clr.l	($FFFFF61A).w
 		move.l	d1,-(sp)
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.w	#$8F01,(a5)
 		move.l	#$94FF93FF,(a5)
 		move.w	#$9780,(a5)
 		move.l	#$40000080,(a5)
-		move.w	#0,($C00000).l	; clear	the screen
+		move.w	#0,(VDP_Data).l	; clear	the screen
 
 loc_128E:
 		move.w	(a5),d1
@@ -803,12 +807,12 @@ VDPSetupArray:	dc.w $8004, $8134, $8230, $8328	; XREF: VDPSetupGame
 
 
 ClearScreen:
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.w	#$8F01,(a5)
 		move.l	#$940F93FF,(a5)
 		move.w	#$9780,(a5)
 		move.l	#$40000083,(a5)
-		move.w	#0,($C00000).l
+		move.w	#0,(VDP_Data).l
 
 loc_12E6:
 		move.w	(a5),d1
@@ -816,12 +820,12 @@ loc_12E6:
 		bne.s	loc_12E6
 
 		move.w	#$8F02,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_Control).l,a5
 		move.w	#$8F01,(a5)
 		move.l	#$940F93FF,(a5)
 		move.w	#$9780,(a5)
 		move.l	#$60000083,(a5)
-		move.w	#0,($C00000).l
+		move.w	#0,(VDP_Data).l
 
 loc_1314:
 		move.w	(a5),d1
@@ -858,18 +862,18 @@ loc_134A:
 
 SoundDriverLoad:			; XREF: GameClrRAM; TitleScreen
 		nop	
-		move.w	#$100,($A11100).l ; stop the Z80
-		move.w	#$100,($A11200).l ; reset the Z80
+		Z80_Stop
+		Z80_StartReset
 		lea	(Kos_Z80).l,a0	; load sound driver
 		lea	($A00000).l,a1
 		bsr.w	KosDec		; decompress
-		move.w	#0,($A11200).l
+		Z80_StopReset
 		nop	
 		nop	
 		nop	
 		nop	
-		move.w	#$100,($A11200).l ; reset the Z80
-		move.w	#0,($A11100).l	; start	the Z80
+		Z80_StartReset
+		Z80_Start
 		rts	
 ; End of function SoundDriverLoad
 
@@ -970,7 +974,7 @@ Pause_SlowMo:				; XREF: PauseGame
 
 
 ShowVDPGraphics:			; XREF: SegaScreen; TitleScreen
-		lea	($C00000).l,a6
+		lea	(VDP_Data).l,a6
 		move.l	#$800000,d4
 
 loc_142C:
@@ -1000,7 +1004,7 @@ NemDec_RAM:
 ; ------------------------------------------------------------------------------
 NemDec:
     movem.l d0-a1/a3-a6,-(sp)
-    lea $C00000,a4      ; load VDP Data Port     
+    lea VDP_Data,a4      ; load VDP Data Port     
     lea NemDec_WriteRowToVDP(pc),a3
  
 NemDec_Main:
@@ -1319,7 +1323,7 @@ sub_165E:				; XREF: VInt_UpdateArt
 		addi.w	#$60,($FFFFF684).w
 
 loc_1676:				; XREF: sub_1642
-		lea	($C00004).l,a4
+		lea	(VDP_Control).l,a4
 		lsl.l	#2,d0
 		lsr.w	#2,d0
 		ori.w	#$4000,d0
@@ -1391,7 +1395,7 @@ RunPLC_Loop:
 		lsr.w	#2,d0
 		ori.w	#$4000,d0
 		swap	d0
-		move.l	d0,($C00004).l	; put the VRAM address into VDP
+		move.l	d0,(VDP_Control).l	; put the VRAM address into VDP
 		bsr.w	NemDec		; decompress
 		dbf	d1,RunPLC_Loop	; loop for number of entries
 		rts	
@@ -1792,13 +1796,10 @@ PalCycle_Load:				; XREF: Demo; Level_MainLoop; End_MainLoop
 ; ---------------------------------------------------------------------------
 ; Pallet cycling routines
 ; ---------------------------------------------------------------------------
-PalCycle:	dc.w PalCycle_GHZ-PalCycle
+PalCycle:	dc.w PalCycle_TZ-PalCycle
 
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-PalCycle_GHZ:				; XREF: PalCycle
+PalCycle_TZ:
 		rts	
-; End of function PalCycle_GHZ
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	fade out and fade in
@@ -2362,7 +2363,7 @@ PalPointers:
 Pal_Title:	incbin	"Title Screen/Main Palette.pal"
 Pal_LevelSel:	incbin	"Title Screen/Level Select.pal"
 Pal_Sonic:	incbin	"Objects/Players/Sonic/Main Palette.pal"
-Pal_GHZ:	incbin	"Levels/Test Zone/Main Palette.pal"
+Pal_TZ:	incbin	"Levels/Test Zone/Main Palette.pal"
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	delay the program by ($FFFFF62A) frames
@@ -2636,7 +2637,7 @@ SegaScreen:				; XREF: GameModeArray
 		bsr.w	PlaySound_Special ; stop music
 		bsr.w	ClearPLC
 		bsr.w	Pal_FadeFrom
-		lea	($C00004).l,a6
+		lea	(VDP_Control).l,a6
 		move.w	#$8004,(a6)
 		move.w	#$8230,(a6)
 		move.w	#$8407,(a6)
@@ -2646,9 +2647,9 @@ SegaScreen:				; XREF: GameModeArray
 		move	#$2700,sr
 		move.w	($FFFFF60C).w,d0
 		andi.b	#$BF,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VDP_Control).l
 		bsr.w	ClearScreen
-		move.l	#$40000000,($C00004).l
+		move.l	#$40000000,(VDP_Control).l
 		lea	(Nem_SegaLogo).l,a0 ; load Sega	logo patterns
 		bsr.w	NemDec
 		lea	($FF0000).l,a1
@@ -2679,7 +2680,7 @@ SegaScreen:				; XREF: GameModeArray
         move.b    #0,($FFFFFFD0).w
 		move.w	($FFFFF60C).w,d0
 		ori.b	#$40,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VDP_Control).l
 
 Sega_WaitPallet:
 		move.b	#2,($FFFFF62A).w
@@ -2717,7 +2718,7 @@ TitleScreen:				; XREF: GameModeArray
 		bsr.w	Pal_FadeFrom
 		move	#$2700,sr
 		bsr.w	SoundDriverLoad
-		lea	($C00004).l,a6
+		lea	(VDP_Control).l,a6
 		move.w	#$8004,(a6)
 		move.w	#$8230,(a6)
 		move.w	#$8407,(a6)
@@ -2745,10 +2746,10 @@ Title_ClrPallet:
         move.b    #0,($FFFFFFD0).w
 		bsr.w	Pal_FadeTo
 		move	#$2700,sr
-		move.l	#$40000001,($C00004).l
+		move.l	#$40000001,(VDP_Control).l
 		lea	(Nem_TitleFg).l,a0 ; load title	screen patterns
 		bsr.w	NemDec
-		lea	($C00000).l,a6
+		lea	(VDP_Data).l,a6
 		move.l	#$50000003,4(a6)
 		lea	(Art_Text).l,a5
 		move.w	#$28F,d1
@@ -2761,7 +2762,7 @@ Title_LoadText:
 		move.w	#0,($FFFFFE08).w ; disable debug item placement	mode
 		move.w	#0,($FFFFFFF0).w ; disable debug mode
 		move.w	#0,($FFFFFFEA).w
-		move.w	#0,($FFFFFE10).w ; set level to	GHZ (00)
+		move.w	#0,($FFFFFE10).w ; set level to	TZ (00)
 		move.w	#0,($FFFFF634).w ; disable pallet cycling
 		move.b	#0,($FFFFF744).w
 		bsr.w	Pal_FadeFrom
@@ -2795,7 +2796,7 @@ Title_ClrObjRam2:
 		move.w	#0,($FFFFFFE6).w
 		move.w	($FFFFF60C).w,d0
 		ori.b	#$40,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VDP_Control).l
 		bsr.w	Pal_FadeTo
 
 loc_317C:
@@ -2876,8 +2877,8 @@ Title_ClrScroll:
 
 		move.l	d0,($FFFFF616).w
 		move	#$2700,sr
-		lea	($C00000).l,a6
-		move.l	#$60000003,($C00004).l
+		lea	(VDP_Data).l,a6
+		move.l	#$60000003,(VDP_Control).l
 		move.w	#$3FF,d1
 
 Title_ClrVram:
@@ -3030,7 +3031,7 @@ LevSel_NoMove:
 
 LevSelTextLoad:				; XREF: TitleScreen
 		lea	(LevelMenuText).l,a1
-		lea	($C00000).l,a6
+		lea	(VDP_Data).l,a6
 		move.l	#$62100003,d4	; screen position (text)
 		move.w	#$E680,d3	; VRAM setting
 		moveq	#2,d1		; number of lines of text
@@ -3062,7 +3063,7 @@ loc_34FE:				; XREF: LevSelTextLoad+26j
 		move.w	#$C680,d3
 
 loc_3550:
-		move.l	#$63300003,($C00004).l ; screen	position (sound	test)
+		move.l	#$63300003,(VDP_Control).l ; screen	position (sound	test)
 		move.w	($FFFFFF84).w,d0
 		addi.w	#$80,d0
 		move.b	d0,d2
@@ -3144,7 +3145,7 @@ loc_37B6:
 		tst.w	($FFFFFFF0).w
 		bmi.s	Level_ClrRam
 		move	#$2700,sr
-		move.l	#$70000002,($C00004).l
+		move.l	#$70000002,(VDP_Control).l
 		lea	(Nem_TitleCard).l,a0 ; load title card patterns
 		bsr.w	NemDec
 		move	#$2300,sr
@@ -3197,7 +3198,7 @@ Level_ClrVars3:
 
 		move	#$2700,sr
 		bsr.w	ClearScreen
-		lea	($C00004).l,a6
+		lea	(VDP_Control).l,a6
 		move.w	#$8B03,(a6)
 		move.w	#$8230,(a6)
 		move.w	#$8407,(a6)
@@ -3311,7 +3312,7 @@ Level_ClrCardArt:
 		jsr	(LoadPLC).l	; load explosion patterns
 		moveq	#0,d0
 		move.b	($FFFFFE10).w,d0
-		addi.w	#PLCID_GHZAnimals,d0
+		addi.w	#PLCID_TZAnimals,d0
 		jsr	(LoadPLC).l	; load animal patterns (level no. + $15)
 
 Level_StartGame:
@@ -3750,62 +3751,11 @@ loc_6206:
 ; End of function BgScrollSpeed
 
 ; ===========================================================================
-BgScroll_Index:	dc.w BgScroll_GHZ-BgScroll_Index, BgScroll_LZ-BgScroll_Index
-		dc.w BgScroll_MZ-BgScroll_Index, BgScroll_SLZ-BgScroll_Index
-		dc.w BgScroll_SYZ-BgScroll_Index, BgScroll_SBZ-BgScroll_Index
-		dc.w BgScroll_End-BgScroll_Index
+BgScroll_Index:	dc.w BgScroll_TZ-BgScroll_Index
 ; ===========================================================================
 
-BgScroll_GHZ:				; XREF: BgScroll_Index
-		bra.w	Deform_GHZ
-; ===========================================================================
-
-BgScroll_LZ:				; XREF: BgScroll_Index
-		asr.l	#1,d0
-		move.w	d0,($FFFFF70C).w
-		rts	
-; ===========================================================================
-
-BgScroll_MZ:				; XREF: BgScroll_Index
-		rts	
-; ===========================================================================
-
-BgScroll_SLZ:				; XREF: BgScroll_Index
-		asr.l	#1,d0
-		addi.w	#$C0,d0
-		move.w	d0,($FFFFF70C).w
-		rts	
-; ===========================================================================
-
-BgScroll_SYZ:				; XREF: BgScroll_Index
-		asl.l	#4,d0
-		move.l	d0,d2
-		asl.l	#1,d0
-		add.l	d2,d0
-		asr.l	#8,d0
-		move.w	d0,($FFFFF70C).w
-		move.w	d0,($FFFFF714).w
-		rts	
-; ===========================================================================
-
-BgScroll_SBZ:				; XREF: BgScroll_Index
-		asl.l	#4,d0
-		asl.l	#1,d0
-		asr.l	#8,d0
-		move.w	d0,($FFFFF70C).w
-		rts	
-; ===========================================================================
-
-BgScroll_End:				; XREF: BgScroll_Index
-		move.w	#$1E,($FFFFF70C).w
-		move.w	#$1E,($FFFFF714).w
-		rts	
-; ===========================================================================
-		move.w	#$A8,($FFFFF708).w
-		move.w	#$1E,($FFFFF70C).w
-		move.w	#-$40,($FFFFF710).w
-		move.w	#$1E,($FFFFF714).w
-		rts
+BgScroll_TZ:				; XREF: BgScroll_Index
+		bra.w	Deform_TZ
 
 ; ---------------------------------------------------------------------------
 ; Background layer deformation subroutines
@@ -3845,18 +3795,12 @@ loc_628E:
 ; ---------------------------------------------------------------------------
 ; Offset index for background layer deformation	code
 ; ---------------------------------------------------------------------------
-Deform_Index:	dc.w Deform_GHZ-Deform_Index, Deform_LZ-Deform_Index
-		dc.w Deform_MZ-Deform_Index, Deform_SLZ-Deform_Index
-		dc.w Deform_SYZ-Deform_Index, Deform_SBZ-Deform_Index
-		dc.w Deform_GHZ-Deform_Index
-; ---------------------------------------------------------------------------
-; Green	Hill Zone background layer deformation code
-; ---------------------------------------------------------------------------
+Deform_Index:	dc.w Deform_TZ-Deform_Index
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-Deform_GHZ:				; XREF: Deform_Index
+Deform_TZ:				; XREF: Deform_Index
 		move.w	($FFFFF73A).w,d4
 		ext.l	d4
 		asl.l	#5,d4
@@ -3923,257 +3867,7 @@ loc_6384:
 		swap	d3
 		dbf	d1,loc_6384
 		rts	
-; End of function Deform_GHZ
-
-; ---------------------------------------------------------------------------
-; Labyrinth Zone background layer deformation code
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-Deform_LZ:				; XREF: Deform_Index
-		move.w	($FFFFF73A).w,d4
-		ext.l	d4
-		asl.l	#7,d4
-		move.w	($FFFFF73C).w,d5
-		ext.l	d5
-		asl.l	#7,d5
-		bsr.w	ScrollBlock1
-		move.w	($FFFFF70C).w,($FFFFF618).w
-		lea	($FFFFCC00).w,a1
-		move.w	#$DF,d1
-		move.w	($FFFFF700).w,d0
-		neg.w	d0
-		swap	d0
-		move.w	($FFFFF708).w,d0
-		neg.w	d0
-
-loc_63C6:
-		move.l	d0,(a1)+
-		dbf	d1,loc_63C6
-		move.w	($FFFFF646).w,d0
-		sub.w	($FFFFF704).w,d0
-		rts	
-; End of function Deform_LZ
-
-; ---------------------------------------------------------------------------
-; Marble Zone background layer deformation code
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-Deform_MZ:				; XREF: Deform_Index
-		move.w	($FFFFF73A).w,d4
-		ext.l	d4
-		asl.l	#6,d4
-		move.l	d4,d1
-		asl.l	#1,d4
-		add.l	d1,d4
-		moveq	#0,d5
-		bsr.w	ScrollBlock1
-		move.w	#$200,d0
-		move.w	($FFFFF704).w,d1
-		subi.w	#$1C8,d1
-		bcs.s	loc_6402
-		move.w	d1,d2
-		add.w	d1,d1
-		add.w	d2,d1
-		asr.w	#2,d1
-		add.w	d1,d0
-
-loc_6402:
-		move.w	d0,($FFFFF714).w
-		bsr.w	ScrollBlock3
-		move.w	($FFFFF70C).w,($FFFFF618).w
-		lea	($FFFFCC00).w,a1
-		move.w	#$DF,d1
-		move.w	($FFFFF700).w,d0
-		neg.w	d0
-		swap	d0
-		move.w	($FFFFF708).w,d0
-		neg.w	d0
-
-loc_6426:
-		move.l	d0,(a1)+
-		dbf	d1,loc_6426
-		rts	
-; End of function Deform_MZ
-
-; ---------------------------------------------------------------------------
-; Star Light Zone background layer deformation code
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-Deform_SLZ:				; XREF: Deform_Index
-		move.w	($FFFFF73A).w,d4
-		ext.l	d4
-		asl.l	#7,d4
-		move.w	($FFFFF73C).w,d5
-		ext.l	d5
-		asl.l	#7,d5
-		bsr.w	ScrollBlock2
-		move.w	($FFFFF70C).w,($FFFFF618).w
-		bsr.w	Deform_SLZ_2
-		lea	($FFFFA800).w,a2
-		move.w	($FFFFF70C).w,d0
-		move.w	d0,d2
-		subi.w	#$C0,d0
-		andi.w	#$3F0,d0
-		lsr.w	#3,d0
-		lea	(a2,d0.w),a2
-		lea	($FFFFCC00).w,a1
-		move.w	#$E,d1
-		move.w	($FFFFF700).w,d0
-		neg.w	d0
-		swap	d0
-		andi.w	#$F,d2
-		add.w	d2,d2
-		move.w	(a2)+,d0
-		jmp	loc_6482(pc,d2.w)
-; ===========================================================================
-
-loc_6480:				; XREF: Deform_SLZ
-		move.w	(a2)+,d0
-
-loc_6482:
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		move.l	d0,(a1)+
-		dbf	d1,loc_6480
-		rts	
-; End of function Deform_SLZ
-
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-Deform_SLZ_2:				; XREF: Deform_SLZ
-		lea	($FFFFA800).w,a1
-		move.w	($FFFFF700).w,d2
-		neg.w	d2
-		move.w	d2,d0
-		asr.w	#3,d0
-		sub.w	d2,d0
-		ext.l	d0
-		asl.l	#4,d0
-		divs.w	#$1C,d0
-		ext.l	d0
-		asl.l	#4,d0
-		asl.l	#8,d0
-		moveq	#0,d3
-		move.w	d2,d3
-		move.w	#$1B,d1
-
-loc_64CE:
-		move.w	d3,(a1)+
-		swap	d3
-		add.l	d0,d3
-		swap	d3
-		dbf	d1,loc_64CE
-		move.w	d2,d0
-		asr.w	#3,d0
-		move.w	#4,d1
-
-loc_64E2:
-		move.w	d0,(a1)+
-		dbf	d1,loc_64E2
-		move.w	d2,d0
-		asr.w	#2,d0
-		move.w	#4,d1
-
-loc_64F0:
-		move.w	d0,(a1)+
-		dbf	d1,loc_64F0
-		move.w	d2,d0
-		asr.w	#1,d0
-		move.w	#$1D,d1
-
-loc_64FE:
-		move.w	d0,(a1)+
-		dbf	d1,loc_64FE
-		rts	
-; End of function Deform_SLZ_2
-
-; ---------------------------------------------------------------------------
-; Spring Yard Zone background layer deformation	code
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-Deform_SYZ:				; XREF: Deform_Index
-		move.w	($FFFFF73A).w,d4
-		ext.l	d4
-		asl.l	#6,d4
-		move.w	($FFFFF73C).w,d5
-		ext.l	d5
-		asl.l	#4,d5
-		move.l	d5,d1
-		asl.l	#1,d5
-		add.l	d1,d5
-		bsr.w	ScrollBlock1
-		move.w	($FFFFF70C).w,($FFFFF618).w
-		lea	($FFFFCC00).w,a1
-		move.w	#$DF,d1
-		move.w	($FFFFF700).w,d0
-		neg.w	d0
-		swap	d0
-		move.w	($FFFFF708).w,d0
-		neg.w	d0
-
-loc_653C:
-		move.l	d0,(a1)+
-		dbf	d1,loc_653C
-		rts	
-; End of function Deform_SYZ
-
-; ---------------------------------------------------------------------------
-; Scrap	Brain Zone background layer deformation	code
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-Deform_SBZ:				; XREF: Deform_Index
-		move.w	($FFFFF73A).w,d4
-		ext.l	d4
-		asl.l	#6,d4
-		move.w	($FFFFF73C).w,d5
-		ext.l	d5
-		asl.l	#4,d5
-		asl.l	#1,d5
-		bsr.w	ScrollBlock1
-		move.w	($FFFFF70C).w,($FFFFF618).w
-		lea	($FFFFCC00).w,a1
-		move.w	#$DF,d1
-		move.w	($FFFFF700).w,d0
-		neg.w	d0
-		swap	d0
-		move.w	($FFFFF708).w,d0
-		neg.w	d0
-
-loc_6576:
-		move.l	d0,(a1)+
-		dbf	d1,loc_6576
-		rts	
-; End of function Deform_SBZ
+; End of function Deform_TZ
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	scroll the level horizontally as Sonic moves
@@ -4446,7 +4140,7 @@ locret_6766:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-ScrollBlock1:				; XREF: Deform_GHZ; et al
+ScrollBlock1:				; XREF: Deform_TZ; et al
 		move.l	($FFFFF708).w,d2
 		move.l	d2,d0
 		add.l	d4,d0
@@ -4529,7 +4223,7 @@ locret_6812:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-ScrollBlock3:				; XREF: Deform_GHZ; et al
+ScrollBlock3:				; XREF: Deform_TZ; et al
 		move.w	($FFFFF70C).w,d3
 		move.w	d0,($FFFFF70C).w
 		move.w	d0,d1
@@ -4555,7 +4249,7 @@ locret_6842:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-ScrollBlock4:				; XREF: Deform_GHZ
+ScrollBlock4:				; XREF: Deform_TZ
 		move.w	($FFFFF710).w,d2
 		move.w	($FFFFF714).w,d3
 		move.w	($FFFFF73A).w,d0
@@ -4587,8 +4281,8 @@ locret_6884:
 
 
 sub_6886:				; XREF: loc_C44
-		lea	($C00004).l,a5
-		lea	($C00000).l,a6
+		lea	(VDP_Control).l,a5
+		lea	(VDP_Data).l,a6
 		lea	($FFFFF756).w,a2
 		lea	($FFFFF708).w,a3
 		movea.l	($FFFFA404).w,a4			; MJ: Load address of layout BG
@@ -4607,8 +4301,8 @@ sub_6886:				; XREF: loc_C44
 
 
 LoadTilesAsYouMove:			; XREF: VInt_UpdateArt
-		lea	($C00004).l,a5
-		lea	($C00000).l,a6
+		lea	(VDP_Control).l,a5
+		lea	(VDP_Data).l,a6
 		lea	($FFFFFF32).w,a2
 		lea	($FFFFFF18).w,a3
 		movea.l	($FFFFA404).w,a4			; MJ: Load address of layout BG
@@ -5052,8 +4746,8 @@ sub_6C3C:
 
 
 LoadTilesFromStart:			; XREF: Level
-		lea	($C00004).l,a5
-		lea	($C00000).l,a6
+		lea	(VDP_Control).l,a5
+		lea	(VDP_Data).l,a6
 		lea	($FFFFF700).w,a3
 		movea.l	($FFFFA400).w,a4			; MJ: Load address of layout
 		move.w	#$4000,d2
@@ -5155,7 +4849,7 @@ MainLoadBlockLoad:			; XREF: Level
 		andi.w	#$FF,d0
 		bsr.w	PalLoad1	; load pallet (based on	d0)
 		movea.l	(sp)+,a2
-		addq.w	#PLCID_GHZ1,a2
+		addq.w	#PLCID_TZ1,a2
 		moveq	#0,d0
 		move.b	(a2),d0
 		beq.s	locret_6D10
@@ -5241,24 +4935,24 @@ loc_6DC4:
 ; ---------------------------------------------------------------------------
 ; Offset index for dynamic screen resizing
 ; ---------------------------------------------------------------------------
-Resize_Index:	dc.w Resize_GHZ-Resize_Index
+Resize_Index:	dc.w Resize_TZ-Resize_Index
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Green	Hill Zone dynamic screen resizing
 ; ---------------------------------------------------------------------------
 
-Resize_GHZ:				; XREF: Resize_Index
+Resize_TZ:				; XREF: Resize_Index
 		moveq	#0,d0
 		move.b	($FFFFFE11).w,d0
 		add.w	d0,d0
-		move.w	Resize_GHZx(pc,d0.w),d0
-		jmp	Resize_GHZx(pc,d0.w)
+		move.w	Resize_TZx(pc,d0.w),d0
+		jmp	Resize_TZx(pc,d0.w)
 ; ===========================================================================
-Resize_GHZx:	dc.w Resize_GHZ1-Resize_GHZx
-		dc.w Resize_GHZ2-Resize_GHZx
+Resize_TZx:	dc.w Resize_TZ1-Resize_TZx
+		dc.w Resize_TZ2-Resize_TZx
 ; ===========================================================================
 
-Resize_GHZ1:
+Resize_TZ1:
 		move.w	#$300,($FFFFF726).w ; set lower	y-boundary
 		cmpi.w	#$1780,($FFFFF700).w ; has the camera reached $1780 on x-axis?
 		bcs.s	locret_6E08	; if not, branch
@@ -5268,7 +4962,7 @@ locret_6E08:
 		rts	
 ; ===========================================================================
 
-Resize_GHZ2:
+Resize_TZ2:
 		move.w	#$300,($FFFFF726).w
 		cmpi.w	#$ED0,($FFFFF700).w
 		bcs.s	locret_6E3A
@@ -5285,7 +4979,7 @@ locret_6E3A:
 ; ===========================================================================
 
 ; ---------------------------------------------------------------------------
-; Object 11 - GHZ bridge
+; Object 11 - bridge
 ; ---------------------------------------------------------------------------
 
 Obj11:					; XREF: Obj_Index
@@ -5469,7 +5163,7 @@ locret_751E:
 ; End of function PlatformObject
 
 ; ---------------------------------------------------------------------------
-; Sloped platform subroutine (GHZ collapsing ledges and	SLZ seesaws)
+; Sloped platform subroutine
 ; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
@@ -5685,12 +5379,12 @@ locret_76CA:
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
-; GHZ bridge-bending data
+; Bridge-bending data
 ; (Defines how the bridge bends	when Sonic walks across	it)
 ; ---------------------------------------------------------------------------
-Obj11_BendData:	incbin	misc\ghzbend1.bin
+Obj11_BendData:	incbin	"Objects/Bridge/Bend Data 1.bin"
 		even
-Obj11_BendData2:incbin	misc\ghzbend2.bin
+Obj11_BendData2:incbin	"Objects/Bridge/Bend Data 2.bin"
 		even
 
 ; ===========================================================================
@@ -5749,15 +5443,14 @@ Obj11_Display2:				; XREF: Obj11_Index
 		rts	
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
-; Sprite mappings - GHZ	bridge
+; Sprite mappings - Bridge
 ; ---------------------------------------------------------------------------
 Map_obj11:
 	include "Objects/Bridge/Mappings.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
-; Object 15 - swinging platforms (GHZ, MZ, SLZ)
-;	    - spiked ball on a chain (SBZ)
+; Object 15 - swinging platforms
 ; ---------------------------------------------------------------------------
 
 Obj15:					; XREF: Obj_Index
@@ -5774,7 +5467,7 @@ Obj15_Index:	dc.w Obj15_Main-Obj15_Index, Obj15_SetSolid-Obj15_Index
 
 Obj15_Main:				; XREF: Obj15_Index
 		addq.b	#2,$24(a0)
-		move.l	#Map_obj15,4(a0) ; GHZ and MZ specific code
+		move.l	#Map_obj15,4(a0)
 		move.w	#$4380,2(a0)
 		move.b	#4,1(a0)
 		move.w	#$180,Obj_Priority(a0)
@@ -6002,7 +5695,7 @@ Obj15_Display:				; XREF: Obj15_Index
 		bra.w	DisplaySprite
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
-; Sprite mappings - GHZ	and MZ swinging	platforms
+; Sprite mappings - Swinging platforms
 ; ---------------------------------------------------------------------------
 Map_obj15:
 	include "Objects/Swinging Platform/Mappings.asm"
@@ -6010,7 +5703,7 @@ Map_obj15:
 ; ===========================================================================
 
 ; ---------------------------------------------------------------------------
-; Object 18 - platforms	(GHZ, SYZ, SLZ)
+; Object 18 - platforms
 ; ---------------------------------------------------------------------------
 
 Obj18:					; XREF: Obj_Index
@@ -6312,7 +6005,7 @@ Obj18_Delete:				; XREF: Obj18_Index
 ; ===========================================================================
 
 ; ---------------------------------------------------------------------------
-; Sprite mappings - GHZ	platforms
+; Sprite mappings - Platforms
 ; ---------------------------------------------------------------------------
 Map_obj18:
 	include "Objects/Platform/Mappings.asm"
@@ -6527,7 +6220,7 @@ Obj53_Data2:	dc.b $1E, $16, $E, 6, $1A, $12,	$A, 2
 Obj53_Data3:	dc.b $16, $1E, $1A, $12, 6, $E,	$A, 2
 
 ; ---------------------------------------------------------------------------
-; Sloped platform subroutine (GHZ collapsing ledges and	MZ platforms)
+; Sloped platform subroutine
 ; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
@@ -8509,18 +8202,6 @@ Obj34_CheckSBZ3:			; XREF: Obj34_Index
 		movea.l	a0,a1
 		moveq	#0,d0
 		move.b	($FFFFFE10).w,d0
-		cmpi.w	#$103,($FFFFFE10).w ; check if level is	SBZ 3
-		bne.s	Obj34_CheckFZ
-		moveq	#5,d0		; load title card number 5 (SBZ)
-
-Obj34_CheckFZ:
-		move.w	d0,d2
-		cmpi.w	#$502,($FFFFFE10).w ; check if level is	FZ
-		bne.s	Obj34_LoadConfig
-		moveq	#6,d0		; load title card number 6 (FZ)
-		moveq	#$B,d2		; use "FINAL" mappings
-
-Obj34_LoadConfig:
 		lea	(Obj34_ConData).l,a3
 		lsl.w	#4,d0
 		adda.w	d0,a3
@@ -8539,7 +8220,7 @@ Obj34_Loop:
 		move.b	d2,d0
 
 Obj34_ActNumber:
-		cmpi.b	#7,d0
+		cmpi.b	#1,d0
 		bne.s	Obj34_MakeSprite
 		add.b	($FFFFFE11).w,d0
 		cmpi.b	#3,($FFFFFE11).w
@@ -8617,20 +8298,20 @@ Obj34_ChangeArt:			; XREF: Obj34_ChkPos2
 		jsr	(LoadPLC).l	; load explosion patterns
 		moveq	#0,d0
 		move.b	($FFFFFE10).w,d0
-		addi.w	#PLCID_GHZAnimals,d0
+		addi.w	#PLCID_TZAnimals,d0
 		jsr	(LoadPLC).l	; load animal patterns
 
 Obj34_Delete:
 		bra.w	DeleteObject
 ; ===========================================================================
 Obj34_ItemData:	dc.w $D0	; y-axis position
-		dc.b 2,	0	; routine number, frame	number (changes)
+		dc.b 2,	4	; routine number, frame	number (changes)
 		dc.w $E4
-		dc.b 2,	6
+		dc.b 2,	0
 		dc.w $EA
-		dc.b 2,	7
+		dc.b 2,	1
 		dc.w $E0
-		dc.b 2,	$A
+		dc.b 2,	3
 ; ---------------------------------------------------------------------------
 ; Title	card configuration data
 ; Format:
@@ -8857,11 +8538,6 @@ Obj3A_ChkBonus:
         move.w    #$C5,d0
         jsr    (PlaySound_Special).l ;    play "ker-ching" sound
         addq.b    #2,$24(a0)
-        cmpi.w    #$501,($FFFFFE10).w
-        bne.s    Obj3A_SetDelay
-        addq.b    #4,$24(a0)
-
-Obj3A_SetDelay:
         move.w    #180,$1E(a0)    ; set time delay to 3 seconds
 
 locret_C692:
@@ -9172,7 +8848,7 @@ Map_obj36:
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
-; Object 3C - smashable	wall (GHZ, SLZ)
+; Object 3C - smashable	wall
 ; ---------------------------------------------------------------------------
 
 Obj3C:					; XREF: Obj_Index
@@ -9246,7 +8922,7 @@ Obj3C_FragMove:				; XREF: Obj3C_Index
 		rts	
 
 ; ---------------------------------------------------------------------------
-; Subroutine to	smash a	block (GHZ walls and MZ	blocks)
+; Subroutine to	smash a	block
 ; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
@@ -9321,7 +8997,7 @@ Obj3C_FragSpd2:	dc.w $FA00, $FA00
 		dc.w $FA00, $100
 		dc.w $FC00, $500
 ; ---------------------------------------------------------------------------
-; Sprite mappings - smashable walls (GHZ, SLZ)
+; Sprite mappings - smashable walls
 ; ---------------------------------------------------------------------------
 Map_obj3C:
 	include "Objects/Smashable Wall/Mappings.asm"
@@ -11363,7 +11039,7 @@ Map_obj54:
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
-; Object 40 - Moto Bug enemy (GHZ)
+; Object 40 - Example Enemy
 ; ---------------------------------------------------------------------------
 
 Obj40:					; XREF: Obj_Index
@@ -11501,7 +11177,7 @@ Ani_obj40:
 	include "Objects/Example Enemy/Animations.asm"
 
 ; ---------------------------------------------------------------------------
-; Sprite mappings - Moto Bug enemy (GHZ)
+; Sprite mappings - Example Enemy
 ; ---------------------------------------------------------------------------
 Map_obj40:
 	include "Objects/Example Enemy/Mappings.asm"
@@ -16243,7 +15919,7 @@ Map_obj79:
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
-; Object 3D - Eggman (GHZ)
+; Object 3D - Example Boss
 ; ---------------------------------------------------------------------------
 
 Obj3D:					; XREF: Obj_Index
@@ -17573,7 +17249,7 @@ AniArt_Load:				; XREF: VInt_UpdateArt; loc_F54
 		bne.s	AniArt_Pause	; if yes, branch
 		cmp.b	#6,($FFFFD000+Obj_Routine).w
 		bge.s	AniArt_Pause
-		lea	($C00000).l,a6
+		lea	(VDP_Data).l,a6
 		moveq	#0,d0
 		move.b	($FFFFFE10).w,d0
 		add.w	d0,d0
@@ -17586,13 +17262,13 @@ AniArt_Pause:
 ; End of function AniArt_Load
 
 ; ===========================================================================
-AniArt_Index:	dc.w AniArt_GHZ-AniArt_Index
+AniArt_Index:	dc.w AniArt_TZ-AniArt_Index
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Animated pattern routine - Green Hill
 ; ---------------------------------------------------------------------------
 
-AniArt_GHZ:				; XREF: AniArt_Index
+AniArt_TZ:				; XREF: AniArt_Index
 		rts
 
 AniArt_none:				; XREF: AniArt_Index
@@ -17765,7 +17441,7 @@ Hud_ChkBonus:
 		tst.b	($FFFFF7D6).w	; do time/ring bonus counters need updating?
 		beq.s	Hud_End		; if not, branch
 		clr.b	($FFFFF7D6).w
-		move.l	#$6E000002,($C00004).l
+		move.l	#$6E000002,(VDP_Control).l
 		moveq	#0,d1
 		move.w	($FFFFF7D2).w,d1 ; load	time bonus
 		bsr.w	Hud_TimeRingBonus
@@ -17814,7 +17490,7 @@ HudDb_ChkBonus:
 		tst.b	($FFFFF7D6).w	; does the ring/time bonus counter need	updating?
 		beq.s	HudDb_End	; if not, branch
 		clr.b	($FFFFF7D6).w
-		move.l	#$6E000002,($C00004).l ; set VRAM address
+		move.l	#$6E000002,(VDP_Control).l ; set VRAM address
 		moveq	#0,d1
 		move.w	($FFFFF7D2).w,d1 ; load	time bonus
 		bsr.w	Hud_TimeRingBonus
@@ -17834,7 +17510,7 @@ HudDb_End:
 
 
 Hud_LoadZero:				; XREF: HudUpdate
-		move.l	#$5F400003,($C00004).l
+		move.l	#$5F400003,(VDP_Control).l
 		lea	Hud_TilesZero(pc),a2
 		move.w	#2,d2
 		bra.s	loc_1C83E
@@ -17848,9 +17524,9 @@ Hud_LoadZero:				; XREF: HudUpdate
 
 
 Hud_Base:				; XREF: Level
-		lea	($C00000).l,a6
+		lea	(VDP_Data).l,a6
 		bsr.w	Hud_Lives
-		move.l	#$5C400003,($C00004).l
+		move.l	#$5C400003,(VDP_Control).l
 		lea	Hud_TilesBase(pc),a2
 		move.w	#$E,d2
 
@@ -17893,7 +17569,7 @@ Hud_TilesZero:	dc.b $FF, $FF, 0, 0
 
 
 HudDb_XY:				; XREF: HudDebug
-		move.l	#$5C400003,($C00004).l ; set VRAM address
+		move.l	#$5C400003,(VDP_Control).l ; set VRAM address
 		move.w	($FFFFF700).w,d1 ; load	camera x-position
 		swap	d1
 		move.w	($FFFFD008).w,d1 ; load	Sonic's x-position
@@ -18437,9 +18113,9 @@ DebugList:
 	include "Levels/Debug List Pointers.asm"
 
 ; ---------------------------------------------------------------------------
-; Debug	list - Green Hill
+; Debug	list - Test Zone
 ; ---------------------------------------------------------------------------
-Debug_GHZ:
+Debug_TZ:
 	include "Levels/Test Zone/Debug List.asm"
 
 ; ---------------------------------------------------------------------------
@@ -18559,11 +18235,11 @@ Nem_Squirrel:	incbin	"Objects/Animals/Squirrel Tiles.nem"	; squirrel
 ; Compressed graphics - primary patterns and block mappings
 ; ---------------------------------------------------------------------------
 
-Blk16_GHZ:	incbin	"Levels/Test Zone/Blocks.eni"
+TZ_Blocks:	incbin	"Levels/Test Zone/Blocks.eni"
 		even
-Kos_GHZ:	incbin	"Levels/Test Zone/Tiles.kos"	; GHZ primary patterns
+TZ_Tiles:	incbin	"Levels/Test Zone/Tiles.kos"	; GHZ primary patterns
 		even
-Blk256_GHZ:	incbin	"Levels/Test Zone/Chunks.kos"
+TZ_Chunks:	incbin	"Levels/Test Zone/Chunks.kos"
 		even
 
 ; ---------------------------------------------------------------------------
@@ -18585,45 +18261,46 @@ CollArray1:	incbin	"Levels/Normal Coll Array.bin"	; normal collision array
 		even
 CollArray2:	incbin	"Levels/Rotated Coll Array.bin"	; rotated collision array
 		even
-Col_GHZ_1:	incbin	"Levels/Test Zone/Path 1.col"	; GHZ index 1
+Col_TZ_1:	incbin	"Levels/Test Zone/Path 1.col"
 		even
-Col_GHZ_2:	incbin	"Levels/Test Zone/Path 2.col"	; GHZ index 2
+Col_TZ_2:	incbin	"Levels/Test Zone/Path 2.col"
 		even
 ; ---------------------------------------------------------------------------
 ; Level	layout index
 ; ---------------------------------------------------------------------------
-Level_Index:	dc.l Level_GHZ1, Level_GHZbg, byte_68D70	; MJ: Table needs to be read in long-word as the layouts are now bigger
-		dc.l Level_GHZ2, Level_GHZbg2, byte_68E3C
+Level_Index:
+		dc.l Level_TZ1, Level_TZ1BG, byte_68D70
+		dc.l Level_TZ2, Level_TZ2BG, byte_68E3C
 
-Level_GHZ1:	incbin	"Levels/Test Zone/Layout 1.lyt"
+Level_TZ1:	incbin	"Levels/Test Zone/Layout 1.lyt"
 		even
 byte_68D70:	dc.b 0,	0, 0, 0
-Level_GHZ2:	incbin	"Levels/Test Zone/Layout 2.lyt"
+Level_TZ2:	incbin	"Levels/Test Zone/Layout 2.lyt"
 		even
 byte_68E3C:	dc.b 0,	0, 0, 0
-Level_GHZbg:	incbin	"Levels/Test Zone/Background 1.lyt"
-Level_GHZbg2:	incbin	"Levels/Test Zone/Background 2.lyt"
+Level_TZ1BG:	incbin	"Levels/Test Zone/Background 1.lyt"
+Level_TZ2BG:	incbin	"Levels/Test Zone/Background 2.lyt"
 		even
 
 ; ---------------------------------------------------------------------------
 ; Sprite locations index
 ; ---------------------------------------------------------------------------
-ObjPos_Index:	dc.w ObjPos_GHZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
-		dc.w ObjPos_GHZ2-ObjPos_Index, ObjPos_Null-ObjPos_Index
+ObjPos_Index:	dc.w ObjPos_TZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
+		dc.w ObjPos_TZ2-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.b $FF, $FF, 0, 0, 0,	0
-ObjPos_GHZ1:	incbin	"Levels/Test Zone/Objects 1.obj"
+ObjPos_TZ1:	incbin	"Levels/Test Zone/Objects 1.obj"
 		even
-ObjPos_GHZ2:	incbin	"Levels/Test Zone/Objects 2.obj"
+ObjPos_TZ2:	incbin	"Levels/Test Zone/Objects 2.obj"
 		even
 ObjPos_Null:	dc.b $FF, $FF, 0, 0, 0,	0
 ; ---------------------------------------------------------------------------
 ; Sprite locations index
 ; ---------------------------------------------------------------------------
-RingPos_Index:	dc.w Rings_GHZ1-RingPos_Index, Rings_Null-RingPos_Index
-		dc.w Rings_GHZ2-RingPos_Index, Rings_Null-RingPos_Index
-Rings_GHZ1:	incbin	"Ring Layouts/ghz1_INDIVIDUAL.bin"
+RingPos_Index:	dc.w Rings_TZ1-RingPos_Index, Rings_Null-RingPos_Index
+		dc.w Rings_TZ2-RingPos_Index, Rings_Null-RingPos_Index
+Rings_TZ1:	incbin	"Ring Layouts/TestZone1_INDIVIDUAL.bin"
 		even
-Rings_GHZ2:	incbin	"Ring Layouts/ghz2_INDIVIDUAL.bin"
+Rings_TZ2:	incbin	"Ring Layouts/TestZone2_INDIVIDUAL.bin"
 		even
 Rings_Null:	dc.b $FF, $FF, 0, 0
 
@@ -18679,19 +18356,19 @@ SoundTypes:	dc.b $90, $90, $90, $90, $90, $90, $90,	$90, $90, $90, $90, $90, $90
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-sub_71B4C:				; XREF: loc_B10; PalToCRAM
-		move.w	#$100,($A11100).l ; stop the Z80
+sub_71B4C:				; XREF: VInt; HInt
+		move.w	#$100,(Z80_BusLn).l ; stop the Z80
 		nop	
 		nop	
 		nop	
 
 loc_71B5A:
-		btst	#0,($A11100).l
+		btst	#0,(Z80_BusLn).l
 		bne.s	loc_71B5A
 
 		btst	#7,($A01FFD).l
 		beq.s	loc_71B82
-		move.w	#0,($A11100).l	; start	the Z80
+		move.w	#0,(Z80_BusLn).l	; start	the Z80
 		nop	
 		nop	
 		nop	
@@ -18799,7 +18476,7 @@ loc_71C38:
 		jsr	sub_72850(pc)
 
 loc_71C44:
-		move.w	#0,($A11100).l ; start the Z80
+		move.w	#0,(Z80_BusLn).l ; start the Z80
 		btst	#6,($FFFFFFF8).w ; is Megadrive PAL?
 		beq.s	@end ; if not, branch
 		cmpi.b	#5,($FFFFFFBF).w ; 5th frame?
@@ -19275,7 +18952,7 @@ PlayPCM_Loop:
 		sub.l	#1,d3				; Subtract 1 from the PCM sample size 
 		beq.s	return_PlayPCM			; If d3 = 0, we finished playing the PCM sample, so stop playing, leave this loop, and unfreeze the 68K 
 		lea	($FFFFF604).w,a0		; address where JoyPad states are written 
-		lea	($A10003).l,a1			; address where JoyPad states are read from 
+		lea	(IO_Data1).l,a1			; address where JoyPad states are read from 
 		jsr	(Joypad_Read).w			; Read only the first joypad port. It's important that we do NOT do the two ports, we don't have the cycles for that 
 		btst	#7,($FFFFF604).w		; Check for Start button 
 		bne.s	return_PlayPCM			; If start is pressed, stop playing, leave this loop, and unfreeze the 68K 
@@ -19584,9 +19261,9 @@ loc_72244:
 		bne.s	loc_7226E
 		move.b	d4,d0
 		ori.b	#$1F,d0
-		move.b	d0,($C00011).l
+		move.b	d0,(PSG_Port).l
 		bchg	#5,d0
-		move.b	d0,($C00011).l
+		move.b	d0,(PSG_Port).l
 
 loc_7226E:
 		lea	dword_722EC(pc),a5
@@ -19727,9 +19404,9 @@ loc_723A6:
 		bpl.s	locret_723C6
 		bset	#2,$370(a6)
 		ori.b	#$1F,d4
-		move.b	d4,($C00011).l
+		move.b	d4,(PSG_Port).l
 		bchg	#5,d4
-		move.b	d4,($C00011).l
+		move.b	d4,(PSG_Port).l
 
 locret_723C6:
 		rts	
@@ -19801,7 +19478,7 @@ loc_7245A:
 		bset	#1,(a0)
 		cmpi.b	#$E0,1(a0)
 		bne.s	loc_72472
-		move.b	$1F(a0),($C00011).l
+		move.b	$1F(a0),(PSG_Port).l
 
 loc_72472:
 		adda.w	#$30,a5
@@ -19846,7 +19523,7 @@ loc_724AE:
 		bpl.s	locret_724E4
 		cmpi.b	#-$20,1(a5)
 		bne.s	locret_724E4
-		move.b	$1F(a5),($C00011).l
+		move.b	$1F(a5),(PSG_Port).l
 
 locret_724E4:
 		rts	
@@ -20350,8 +20027,8 @@ loc_72904:
 		or.b	d1,d0
 		lsr.w	#4,d6
 		andi.b	#$3F,d6
-		move.b	d0,($C00011).l
-		move.b	d6,($C00011).l
+		move.b	d0,(PSG_Port).l
+		move.b	d6,(PSG_Port).l
 
 locret_7291E:
 		rts	
@@ -20409,7 +20086,7 @@ sub_7296A:				; XREF: sub_72504; sub_7267C; sub_72926
 loc_7297C:
 		or.b	1(a5),d6
 		addi.b	#$10,d6
-		move.b	d6,($C00011).l
+		move.b	d6,(PSG_Port).l
 
 locret_7298A:
 		rts	
@@ -20439,7 +20116,7 @@ sub_729A0:				; XREF: sub_71D9E; Sound_ChkValue; Snd_FadeOut1; sub_728AC
 loc_729A6:				; XREF: Snd_FadeOut2
 		move.b	1(a5),d0
 		ori.b	#$1F,d0
-		move.b	d0,($C00011).l
+		move.b	d0,(PSG_Port).l
 
 locret_729B4:
 		rts	
@@ -20450,7 +20127,7 @@ locret_729B4:
 
 
 sub_729B6:				; XREF: loc_71E7C
-		lea	($C00011).l,a0
+		lea	(PSG_Port).l,a0
 		move.b	#$9F,(a0)
 		move.b	#$BF,(a0)
 		move.b	#$DF,(a0)
@@ -20626,7 +20303,7 @@ Restore_NoFM6:
 		move.b	#$80,$24(a6)
 		move.b	#$28,$26(a6)
 		clr.b	$27(a6)
-		move.w	#0,($A11100).l
+		move.w	#0,(Z80_BusLn).l
 		addq.w	#8,sp
 		rts	
 ; ===========================================================================
@@ -20921,7 +20598,7 @@ loc_72DEA:
 		bset	#1,(a0)
 		cmpi.b	#$E0,1(a0)
 		bne.s	loc_72E02
-		move.b	$1F(a0),($C00011).l
+		move.b	$1F(a0),(PSG_Port).l
 
 loc_72E02:
 		addq.w	#8,sp
@@ -20933,7 +20610,7 @@ loc_72E06:				; XREF: loc_72A64
 		move.b	(a4)+,$1F(a5)
 		btst	#2,(a5)
 		bne.s	locret_72E1E
-		move.b	-1(a4),($C00011).l
+		move.b	-1(a4),(PSG_Port).l
 
 locret_72E1E:
 		rts	

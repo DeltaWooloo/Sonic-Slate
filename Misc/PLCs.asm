@@ -3,10 +3,10 @@
 ; ---------------------------------------------------------------------------
 	dc.w PLC_Main-ArtLoadCues, PLC_Main2-ArtLoadCues
 	dc.w PLC_Explode-ArtLoadCues, PLC_GameOver-ArtLoadCues
-	dc.w PLC_GHZ-ArtLoadCues, PLC_GHZ2-ArtLoadCues
+	dc.w PLC_TZ-ArtLoadCues, PLC_TZ2-ArtLoadCues
 	dc.w PLC_TitleCard-ArtLoadCues
 	dc.w PLC_Signpost-ArtLoadCues
-	dc.w PLC_GHZAnimals-ArtLoadCues
+	dc.w PLC_TZAnimals-ArtLoadCues
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - standard block 1
 ; ---------------------------------------------------------------------------
@@ -46,7 +46,7 @@ PLC_GameOver:	dc.w 0
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - Green Hill
 ; ---------------------------------------------------------------------------
-PLC_GHZ:	dc.w 3
+PLC_TZ:	dc.w 3
 		dc.l Nem_Motobug	; motobug enemy
 		dc.w $9E00
 		dc.l Nem_Spikes		; spikes
@@ -55,7 +55,7 @@ PLC_GHZ:	dc.w 3
 		dc.w $A460
 		dc.l Nem_VSpring	; vertical spring
 		dc.w $A660
-PLC_GHZ2:	dc.w 2
+PLC_TZ2:	dc.w 2
 		dc.l Nem_Swing		; swinging platform
 		dc.w $7000
 		dc.l Nem_Bridge		; bridge
@@ -77,7 +77,7 @@ PLC_Signpost:	dc.w 0
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - GHZ animals
 ; ---------------------------------------------------------------------------
-PLC_GHZAnimals:	dc.w 1
+PLC_TZAnimals:	dc.w 1
 		dc.l Nem_Rabbit		; rabbit
 		dc.w $B000
 		dc.l Nem_Flicky		; flicky

@@ -10,6 +10,6 @@
 	dc.l Pal_Sonic
 	dc.w $FB00
 	dc.w 7
-	dc.l Pal_GHZ
+	dc.l Pal_TZ
 	dc.w $FB20
 	dc.w $17

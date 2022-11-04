@@ -1,2 +1,2 @@
-ghz1.bin
-ghz2.bin
+TestZone1.bin
+TestZone2.bin

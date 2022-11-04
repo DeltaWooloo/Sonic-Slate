@@ -7,8 +7,8 @@
 ; 256x256 mappings
 ; blank, music (unused), pal index (unused), pal index
 ; ---------------------------------------------------------------------------
-	dc.l Kos_GHZ+$4000000
-	dc.l Blk16_GHZ+$5000000
-	dc.l Blk256_GHZ
-	dc.b 0,	$81, PalID_GHZ, PalID_GHZ
+	dc.l TZ_Tiles+$4000000
+	dc.l TZ_Blocks+$5000000
+	dc.l TZ_Chunks
+	dc.b 0,	$81, PalID_TZ, PalID_TZ
 	even
