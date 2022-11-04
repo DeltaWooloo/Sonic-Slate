@@ -1,3 +1,7 @@
+; ====================================================================================================
+; Game Constants
+; ====================================================================================================
+
 ; --------------------------------------------------
 ; Scene IDs
 ; --------------------------------------------------
@@ -21,29 +25,108 @@ PalID_GHZ       rs.b 1
 ; PLC IDs
 ; --------------------------------------------------
     rsreset
-PLCID_Main1     rs.b 1
-PLCID_Main2     rs.b 1
-PLCID_Explode   rs.b 1
-PLCID_GameOver  rs.b 1
-PLCID_GHZ1      rs.b 1
-PLCID_GHZ2      rs.b 1
-PLCID_TtlCard   rs.b 1
-PLCID_LevelEnd  rs.b 1
+PLCID_Main1         rs.b 1
+PLCID_Main2         rs.b 1
+PLCID_Explode       rs.b 1
+PLCID_GameOver      rs.b 1
+PLCID_GHZ1          rs.b 1
+PLCID_GHZ2          rs.b 1
+PLCID_TtlCard       rs.b 1
+PLCID_LevelEnd      rs.b 1
 PLCID_GHZAnimals    rs.b 1
+; --------------------------------------------------
+
+; --------------------------------------------------
+; Music IDs
+; --------------------------------------------------
+    rsset $81
+MusID_GHZ       rs.b 1
+MusID_LZ        rs.b 1
+MusID_MZ        rs.b 1
+MusID_SLZ       rs.b 1
+MusID_SYZ       rs.b 1
+MusID_SBZ       rs.b 1
+MusID_Invinc    rs.b 1
+MusID_1Up       rs.b 1
+MusID_Special   rs.b 1
+MusID_Title     rs.b 1
+MusID_Ending    rs.b 1
+MusID_Boss      rs.b 1
+MusID_FZ        rs.b 1
+MusID_ActClear  rs.b 1
+MusID_GameOver  rs.b 1
+MusID_Continue  rs.b 1
+MusID_Credits   rs.b 1
+MusID_Drowning  rs.b 1
+MusID_GotEmrld  rs.b 1
+; --------------------------------------------------
+
+; --------------------------------------------------
+; SFX IDs
+; --------------------------------------------------
+
 ; --------------------------------------------------
 
 ; --------------------------------------------------
 ; Object IDs
 ; --------------------------------------------------
     rsset 1
+
+; Players + player children
 ObID_Sonic      rs.b 1
-                rs.b 1
-ObjID_PthSwppr  rs.b 1
-ObjID_SpnTrggr  rs.b 1
-ObID_Dust       rs.b 1
-                rs.b 1
+ObID_Tails      rs.b 1
+ObID_TailsTails rs.b 1
+ObID_Knuckles   rs.b 1
+ObID_DustSplash rs.b 1
+
+; Shields
+ObID_NormShield rs.b 1
+ObID_FireShield rs.b 1
+ObID_ElecShield rs.b 1
+ObID_ElecSparks rs.b 1
+ObID_BblShield  rs.b 1
+
+; Invisible stuff
+ObID_InvisBlock rs.b 1
+ObID_InvisHarm  rs.b 1
+ObID_PthSwapper rs.b 1
+ObID_SpnTrigger rs.b 1
+
+; Display cards
+ObID_TitleCard  rs.b 1
+ObID_GameOver   rs.b 1
+ObID_Results    rs.b 1
+
+; Generic objects
+ObID_Ring       rs.b 1
+ObID_DropRing   rs.b 1
 ObID_AttrctRing rs.b 1
-                rs.b 1
+ObID_Monitor    rs.b 1
+ObID_PowerUp    rs.b 1
+ObID_Sring      rs.b 1
+ObID_Spikes     rs.b 1
+ObID_Checkpoint rs.b 1
+ObID_EneExplode rs.b 1
+ObID_BssExplode rs.b 1
+ObID_Points     rs.b 1
+ObID_Animals    rs.b 1
+ObID_Signpost   rs.b 1
+ObID_AnmlCapsl  rs.b 1
+ObID_Bubbles    rs.b 1
+ObID_DrownBbls  rs.b 1
+ObID_Bumper     rs.b 1
+ObID_Switch     rs.b 1
+ObID_Platform   rs.b 1
+ObID_SwingPltfm rs.b 1
+ObID_Bridge     rs.b 1
+ObID_CllpsPltfm rs.b 1
+ObID_PushBlock  rs.b 1
+ObID_SmashWall  rs.b 1
+
+; Enemies and bosses
+ObID_ExmpEnemy  rs.b 1
+ObID_ExmpBoss   rs.b 1
+
 ; --------------------------------------------------
 
 ; --------------------------------------------------
@@ -81,7 +164,7 @@ Obj_SprWidth    equ $23
 Obj_Routine     equ $24
 Obj_Routine2nd  equ $25
 Obj_Angle       equ $26
-Obj_Subtype
+Obj_Subtype     equ $28
 Obj_Parent      equ $3E
 ; --------------------------------------------------
 
@@ -146,3 +229,5 @@ Boss_XPosition  equ $30
 Boss_YPosition  equ $38
 Boss_FlashTime  equ $3E
 ; --------------------------------------------------
+
+; ====================================================================================================

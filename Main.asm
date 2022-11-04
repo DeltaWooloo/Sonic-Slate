@@ -18641,15 +18641,15 @@ Go_PSGIndex:	dc.l PSG_Index		; XREF: sub_72926
 PSG_Index:	dc.l PSG1, PSG2, PSG3
 		dc.l PSG4, PSG5, PSG6
 		dc.l PSG7, PSG8, PSG9
-PSG1:		incbin	Audio/psg1.bin
-PSG2:		incbin	Audio/psg2.bin
-PSG3:		incbin	Audio/psg3.bin
-PSG4:		incbin	Audio/psg4.bin
-PSG6:		incbin	Audio/psg6.bin
-PSG5:		incbin	Audio/psg5.bin
-PSG7:		incbin	Audio/psg7.bin
-PSG8:		incbin	Audio/psg8.bin
-PSG9:		incbin	Audio/psg9.bin
+PSG1:		incbin	"Audio/Instrument 1.psg"
+PSG2:		incbin	"Audio/Instrument 2.psg"
+PSG3:		incbin	"Audio/Instrument 3.psg"
+PSG4:		incbin	"Audio/Instrument 4.psg"
+PSG6:		incbin	"Audio/Instrument 5.psg"
+PSG5:		incbin	"Audio/Instrument 6.psg"
+PSG7:		incbin	"Audio/Instrument 7.psg"
+PSG8:		incbin	"Audio/Instrument 8.psg"
+PSG9:		incbin	"Audio/Instrument 9.psg"
 
 byte_71A94:	dc.b 7,	$72, $73, $26, $15, 8, $FF, 5
 ; ---------------------------------------------------------------------------
@@ -20990,50 +20990,89 @@ loc_72E64:				; XREF: loc_72A64
 		move.b	#$F,d1
 		bra.w	sub_7272E
 ; ===========================================================================
-Kos_Z80:	incbin	Audio/z80_1.bin
+Kos_Z80:
+		incbin	"Audio/Driver Part 1.kos"
 		dc.w ((SegaPCM&$FF)<<8)+((SegaPCM&$FF00)>>8)
 		dc.b $21
 		dc.w (((EndOfRom-SegaPCM)&$FF)<<8)+(((EndOfRom-SegaPCM)&$FF00)>>8)
-		incbin	Audio/z80_2.bin
+		incbin	"Audio/Driver Part 2.kos"
 		even
-Music81:	incbin	Audio/music81.bin
+Music81:
+		include	"Audio/Music - GHZ.asm"
 		even
-Music82:	incbin	Audio/music82.bin
+
+Music82:
+		include	"Audio/Music - LZ.asm"
 		even
-Music83:	incbin	Audio/music83.bin
+
+Music83:
+		include	"Audio/Music - MZ.asm"
 		even
-Music84:	incbin	Audio/music84.bin
+
+Music84:
+		include	"Audio/Music - SLZ.asm"
 		even
-Music85:	incbin	Audio/music85.bin
+
+Music85:
+		include	"Audio/Music - SYZ.asm"
 		even
-Music86:	incbin	Audio/music86.bin
+
+Music86:
+		include	"Audio/Music - SBZ.asm"
 		even
-Music87:	incbin	Audio/music87.bin
+
+Music87:
+		include	"Audio/Music - Invincibility.asm"
 		even
-Music88:	incbin	Audio/music88.bin
+
+Music88:
+		include	"Audio/Music - 1 Up.asm"
 		even
-Music89:	incbin	Audio/music89.bin
+
+Music89:
+		include	"Audio/Music - Special Stage.asm"
 		even
-Music8A:	incbin	Audio/music8A.bin
+
+Music8A:
+		include	"Audio/Music - Title.asm"
 		even
-Music8B:	incbin	Audio/music8B.bin
+
+Music8B:
+		include	"Audio/Music - Ending.asm"
 		even
-Music8C:	incbin	Audio/music8C.bin
+
+Music8C:
+		include	"Audio/Music - Boss.asm"
 		even
-Music8D:	incbin	Audio/music8D.bin
+
+Music8D:
+		include	"Audio/Music - FZ.asm"
 		even
-Music8E:	incbin	Audio/music8E.bin
+
+Music8E:
+		include	"Audio/Music - Act Clear.asm"
 		even
-Music8F:	incbin	Audio/music8F.bin
+
+Music8F:
+		include	"Audio/Music - Game Over.asm"
 		even
-Music90:	incbin	Audio/music90.bin
+
+Music90:
+		include	"Audio/Music - Continue.asm"
 		even
-Music91:	incbin	Audio/music91.bin
+
+Music91:
+		include	"Audio/Music - Credits.asm"
 		even
-Music92:	incbin	Audio/music92.bin
+
+Music92:
+		include	"Audio/Music - Drowning.asm"
 		even
-Music93:	incbin	Audio/music93.bin
+
+Music93:
+		include	"Audio/Music - Got Emerald.asm"
 		even
+
 ; ---------------------------------------------------------------------------
 ; Sound	effect pointers
 ; ---------------------------------------------------------------------------
@@ -21055,107 +21094,207 @@ SoundIndex:	dc.l SoundA0, SoundA1, SoundA2
 		dc.l SoundCD, SoundCE, SoundCF
 		dc.l SoundD1
 SoundD0Index:	dc.l SoundD0
-SoundA0:	incbin	Audio/soundA0.bin
+SoundA0:
+		include	"Audio/SFX - Jump.asm"
 		even
-SoundA1:	incbin	Audio/soundA1.bin
+
+SoundA1:
+		include	"Audio/SFX - Checkpoint.asm"
 		even
-SoundA2:	incbin	Audio/soundA2.bin
+
+SoundA2:
+		include	"Audio/SFX - Unused Spike 1.asm"
 		even
-SoundA3:	incbin	Audio/soundA3.bin
+
+SoundA3:
+		include	"Audio/SFX - Death.asm"
 		even
-SoundA4:	incbin	Audio/soundA4.bin
+
+SoundA4:
+		include	"Audio/SFX - Skid.asm"
 		even
-SoundA5:	incbin	Audio/soundA5.bin
+
+SoundA5:
+		include	"Audio/SFX - Unused Push.asm"
 		even
-SoundA6:	incbin	Audio/soundA6.bin
+
+SoundA6:
+		include	"Audio/SFX - Spike Hurt.asm"
 		even
-SoundA7:	incbin	Audio/soundA7.bin
+
+SoundA7:
+		include	"Audio/SFX - Block Push.asm"
 		even
-SoundA8:	incbin	Audio/soundA8.bin
+
+SoundA8:
+		include	"Audio/SFX - SS Goal.asm"
 		even
-SoundA9:	incbin	Audio/soundA9.bin
+
+SoundA9:
+		include	"Audio/SFX - SS Boop.asm"
 		even
-SoundAA:	incbin	Audio/soundAA.bin
+
+SoundAA:
+		include	"Audio/SFX - Splash.asm"
 		even
-SoundAB:	incbin	Audio/soundAB.bin
+
+SoundAB:
+		include	"Audio/SFX - Unused Splash.asm"
 		even
-SoundAC:	incbin	Audio/soundAC.bin
+
+SoundAC:
+		include	"Audio/SFX - Boss Hit.asm"
 		even
-SoundAD:	incbin	Audio/soundAD.bin
+
+SoundAD:
+		include	"Audio/SFX - Breathe Bubble.asm"
 		even
-SoundAE:	incbin	Audio/soundAE.bin
+
+SoundAE:
+		include	"Audio/SFX - Fire Ball.asm"
 		even
-SoundAF:	incbin	Audio/soundAF.bin
+
+SoundAF:
+		include	"Audio/SFX - Normal Shield.asm"
 		even
-SoundB0:	incbin	Audio/soundB0.bin
+
+SoundB0:
+		include	"Audio/SFX - Saw.asm"
 		even
-SoundB1:	incbin	Audio/soundB1.bin
+
+SoundB1:
+		include	"Audio/SFX - Electric Shock.asm"
 		even
-SoundB2:	incbin	Audio/soundB2.bin
+
+SoundB2:
+		include	"Audio/SFX - Drown.asm"
 		even
-SoundB3:	incbin	Audio/soundB3.bin
+
+SoundB3:
+		include	"Audio/SFX - Lava Geyser.asm"
 		even
-SoundB4:	incbin	Audio/soundB4.bin
+
+SoundB4:
+		include	"Audio/SFX - Bumper.asm"
 		even
-SoundB5:	incbin	Audio/soundB5.bin
+
+SoundB5:
+		include	"Audio/SFX - Ring.asm"
 		even
-SoundB6:	incbin	Audio/soundB6.bin
+
+SoundB6:
+		include	"Audio/SFX - Spikes Shift.asm"
 		even
-SoundB7:	incbin	Audio/soundB7.bin
+
+SoundB7:
+		include	"Audio/SFX - Rumbling.asm"
 		even
-SoundB8:	incbin	Audio/soundB8.bin
+
+SoundB8:
+		include	"Audio/SFX - Unused Spike 2.asm"
 		even
-SoundB9:	incbin	Audio/soundB9.bin
+
+SoundB9:
+		include	"Audio/SFX - Collapse.asm"
 		even
-SoundBA:	incbin	Audio/soundBA.bin
+
+SoundBA:
+		include	"Audio/SFX - SS Diamond.asm"
 		even
-SoundBB:	incbin	Audio/soundBB.bin
+
+SoundBB:
+		include	"Audio/SFX - Door.asm"
 		even
-SoundBC:	incbin	Audio/soundBC.bin
+
+SoundBC:
+		include	"Audio/SFX - Dash.asm"
 		even
-SoundBD:	incbin	Audio/soundBD.bin
+
+SoundBD:
+		include	"Audio/SFX - Stomp.asm"
 		even
-SoundBE:	incbin	Audio/soundBE.bin
+
+SoundBE:
+		include	"Audio/SFX - Roll.asm"
 		even
-SoundBF:	incbin	Audio/soundBF.bin
+
+SoundBF:
+		include	"Audio/SFX - Got Continue.asm"
 		even
-SoundC0:	incbin	Audio/soundC0.bin
+
+SoundC0:
+		include	"Audio/SFX - Flap.asm"
 		even
-SoundC1:	incbin	Audio/soundC1.bin
+
+SoundC1:
+		include	"Audio/SFX - Enemy Pop.asm"
 		even
-SoundC2:	incbin	Audio/soundC2.bin
+
+SoundC2:
+		include	"Audio/SFX - Air Warning.asm"
 		even
-SoundC3:	incbin	Audio/soundC3.bin
+
+SoundC3:
+		include	"Audio/SFX - Big Ring.asm"
 		even
-SoundC4:	incbin	Audio/soundC4.bin
+
+SoundC4:
+		include	"Audio/SFX - Explosion.asm"
 		even
-SoundC5:	incbin	Audio/soundC5.bin
+
+SoundC5:
+		include	"Audio/SFX - Tally.asm"
 		even
-SoundC6:	incbin	Audio/soundC6.bin
+
+SoundC6:
+		include	"Audio/SFX - Ring Loss.asm"
 		even
-SoundC7:	incbin	Audio/soundC7.bin
+
+SoundC7:
+		include	"Audio/SFX - Chain.asm"
 		even
-SoundC8:	incbin	Audio/soundC8.bin
+
+SoundC8:
+		include	"Audio/SFX - Flamethrower.asm"
 		even
-SoundC9:	incbin	Audio/soundC9.bin
+
+SoundC9:
+		include	"Audio/SFX - Bonus.asm"
 		even
-SoundCA:	incbin	Audio/soundCA.bin
+
+SoundCA:
+		include	"Audio/SFX - SS Entry.asm"
 		even
-SoundCB:	incbin	Audio/soundCB.bin
+
+SoundCB:
+		include	"Audio/SFX - Smash.asm"
 		even
-SoundCC:	incbin	Audio/soundCC.bin
+
+SoundCC:
+		include	"Audio/SFX - Spring.asm"
 		even
-SoundCD:	incbin	Audio/soundCD.bin
+
+SoundCD:
+		include	"Audio/SFX - Switch.asm"
 		even
-SoundCE:	incbin	Audio/soundCE.bin
+
+SoundCE:
+		include	"Audio/SFX - Ring L.asm"
 		even
-SoundCF:	incbin	Audio/soundCF.bin
+
+SoundCF:
+		include	"Audio/SFX - Signpost.asm"
 		even
-SoundD0:	incbin	Audio/soundD0.bin
+
+SoundD0:
+		include	"Audio/SFX - Waterfall.asm"
 		even
-SoundD1:	incbin	Audio/soundD1.bin
+
+SoundD1:
+		include	"Audio/SFX - Spindash Rev.asm"
 		even
-SegaPCM:	incbin	Audio/segapcm.bin
+
+SegaPCM:	incbin	"Audio/SEGA Chant.raw"
 SegaPCM_End	even
 
 	include	"Error/Error Handler.asm"
