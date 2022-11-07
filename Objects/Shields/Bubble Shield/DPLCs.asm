@@ -1,0 +1,47 @@
+DPLC_9770:
+DPLC_9770_0: 	dc.w DPLC_9770_1A-DPLC_9770
+DPLC_9770_2: 	dc.w DPLC_9770_1D-DPLC_9770
+DPLC_9770_4: 	dc.w DPLC_9770_20-DPLC_9770
+DPLC_9770_6: 	dc.w DPLC_9770_23-DPLC_9770
+DPLC_9770_8: 	dc.w DPLC_9770_26-DPLC_9770
+DPLC_9770_A: 	dc.w DPLC_9770_29-DPLC_9770
+DPLC_9770_C: 	dc.w DPLC_9770_2C-DPLC_9770
+DPLC_9770_E: 	dc.w DPLC_9770_2F-DPLC_9770
+DPLC_9770_10: 	dc.w DPLC_9770_32-DPLC_9770
+DPLC_9770_12: 	dc.w DPLC_9770_35-DPLC_9770
+DPLC_9770_14: 	dc.w DPLC_9770_3A-DPLC_9770
+DPLC_9770_16: 	dc.w DPLC_9770_3F-DPLC_9770
+DPLC_9770_18: 	dc.w DPLC_9770_46-DPLC_9770
+DPLC_9770_1A: 	dc.b $1
+	dc.b $30, $0
+DPLC_9770_1D: 	dc.b $1
+	dc.b $50, $4
+DPLC_9770_20: 	dc.b $1
+	dc.b $80, $A
+DPLC_9770_23: 	dc.b $1
+	dc.b $80, $13
+DPLC_9770_26: 	dc.b $1
+	dc.b $B0, $1C
+DPLC_9770_29: 	dc.b $1
+	dc.b $80, $13
+DPLC_9770_2C: 	dc.b $1
+	dc.b $80, $A
+DPLC_9770_2F: 	dc.b $1
+	dc.b $50, $4
+DPLC_9770_32: 	dc.b $1
+	dc.b $10, $0
+DPLC_9770_35: 	dc.b $2
+	dc.b $80, $28
+	dc.b $80, $31
+DPLC_9770_3A: 	dc.b $2
+	dc.b $80, $3A
+	dc.b $80, $43
+DPLC_9770_3F: 	dc.b $3
+	dc.b $70, $4C
+	dc.b $50, $54
+	dc.b $B0, $5A
+DPLC_9770_46: 	dc.b $3
+	dc.b $F0, $66
+	dc.b $30, $76
+	dc.b $F0, $7A
+	even

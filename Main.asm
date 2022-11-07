@@ -3,8 +3,8 @@
 	include	"_def/System.asm"
 	include	"_def/Debugger.asm"
 	include	"_def/SMPS2ASM.asm"
-	include	"_def/RAM.asm"
 	include	"_def/Constants.asm"
+	include	"_def/RAM.asm"
 	include	"_def/Macros.asm"
 
 align macro
@@ -209,10 +209,10 @@ GameClrRAM:
 		bsr.w	VDPSetupGame
 		bsr.w	SoundDriverLoad
 		bsr.w	JoypadInit
-		move.b	#ScnID_SEGA,($FFFFF600).w ; set Game Mode to Sega Screen
+		move.b	#ScnID_SEGA,(Game_Scene).w ; set Game Mode to Sega Screen
 
 MainGameLoop:
-		move.b	($FFFFF600).w,d0 ; load	Game Mode
+		move.b	(Game_Scene).w,d0 ; load	Game Mode
 		andi.w	#$1C,d0
 		jsr	GameModeArray(pc,d0.w) ; jump to apt location in ROM
 		bra.s	MainGameLoop
@@ -247,11 +247,11 @@ Art_Text:	incbin	"Misc/Debug Font.unc"	; text used in level select and debug mod
 
 VInt:				; XREF: Vectors
 		movem.l	d0-a6,-(sp)
-		tst.b	($FFFFF62A).w
-		beq.s	loc_B88
+		tst.b	(VInt_Routine).w
+		beq.s	VInt_Routine0
 		move.w	(VDP_Control).l,d0
 		move.l	#VComm_VSRAMWrite,(VDP_Control).l
-		move.l	($FFFFF616).w,(VDP_Data).l
+		move.l	(VSRM_PlnAYPos).w,(VDP_Data).l
 		btst	#6,($FFFFFFF8).w
 		beq.s	@NotPAL
 		move.w	#$700,d0
@@ -260,14 +260,14 @@ VInt:				; XREF: Vectors
 		dbf	d0,@PALWait
 
 @NotPAL:
-		move.b	($FFFFF62A).w,d0
-		move.b	#0,($FFFFF62A).w
+		move.b	(VInt_Routine).w,d0
+		move.b	#0,(VInt_Routine).w
 		move.w	#1,($FFFFF644).w
 		andi.w	#$3E,d0
 		move.w	VInt_Index(pc,d0.w),d0
 		jsr	VInt_Index(pc,d0.w)
 
-loc_B5E:				; XREF: loc_B88
+loc_B5E:				; XREF: VInt_Routine0
 		jsr	sub_71B4C
 
 loc_B64:				; XREF: loc_D50
@@ -275,19 +275,19 @@ loc_B64:				; XREF: loc_D50
 		movem.l	(sp)+,d0-a6
 		rte	
 ; ===========================================================================
-VInt_Index:	dc.w loc_B88-VInt_Index, loc_C32-VInt_Index
-		dc.w loc_C44-VInt_Index, loc_C5E-VInt_Index
-		dc.w loc_C6E-VInt_Index, loc_DA6-VInt_Index
-		dc.w loc_E72-VInt_Index, loc_F8A-VInt_Index
-		dc.w loc_C64-VInt_Index, loc_F9A-VInt_Index
-		dc.w loc_C36-VInt_Index, loc_FA6-VInt_Index
-		dc.w loc_E72-VInt_Index
+VInt_Index:	dc.w VInt_Routine0-VInt_Index, VInt_Routine2-VInt_Index
+		dc.w VInt_Routine4-VInt_Index, VInt_Routine6-VInt_Index
+		dc.w VInt_Routine8-VInt_Index, VInt_RoutineA-VInt_Index
+		dc.w VInt_RoutineC-VInt_Index, VInt_RoutineE-VInt_Index
+		dc.w VInt_Routine10-VInt_Index, VInt_Routine12-VInt_Index
+		dc.w VInt_Routine14-VInt_Index, VInt_Routine16-VInt_Index
+		dc.w VInt_RoutineC-VInt_Index
 ; ===========================================================================
 
-loc_B88:				; XREF: VInt; VInt_Index
-		cmpi.b	#$80|ScnID_Level,($FFFFF600).w
+VInt_Routine0:				; XREF: VInt; VInt_Index
+		cmpi.b	#$80|ScnID_Level,(Game_Scene).w
 		beq.s	loc_B9A
-		cmpi.b	#ScnID_Level,($FFFFF600).w
+		cmpi.b	#ScnID_Level,(Game_Scene).w
 		bne.w	loc_B5E
 
 loc_B9A:
@@ -333,37 +333,37 @@ loc_C22:				; XREF: loc_BC8
 		bra.w	loc_B5E
 ; ===========================================================================
 
-loc_C32:				; XREF: VInt_Index
+VInt_Routine2:				; XREF: VInt_Index
 		bsr.w	sub_106E
 
-loc_C36:				; XREF: VInt_Index
-		tst.w	($FFFFF614).w
+VInt_Routine14:				; XREF: VInt_Index
+		tst.w	(Game_Timer).w
 		beq.w	locret_C42
-		subq.w	#1,($FFFFF614).w
+		subq.w	#1,(Game_Timer).w
 
 locret_C42:
 		rts	
 ; ===========================================================================
 
-loc_C44:				; XREF: VInt_Index
+VInt_Routine4:				; XREF: VInt_Index
 		bsr.w	sub_106E
 		bsr.w	sub_6886
 		bsr.w	sub_1642
-		tst.w	($FFFFF614).w
+		tst.w	(Game_Timer).w
 		beq.w	locret_C5C
-		subq.w	#1,($FFFFF614).w
+		subq.w	#1,(Game_Timer).w
 
 locret_C5C:
 		rts	
 ; ===========================================================================
 
-loc_C5E:				; XREF: VInt_Index
+VInt_Routine6:				; XREF: VInt_Index
 		bsr.w	sub_106E
 		rts	
 ; ===========================================================================
 
-loc_C64:				; XREF: VInt_Index
-loc_C6E:				; XREF: VInt_Index
+VInt_Routine10:				; XREF: VInt_Index
+VInt_Routine8:				; XREF: VInt_Index
 		Z80_Stop
 		Z80_Wait
 		bsr.w	ReadJoypads
@@ -436,7 +436,7 @@ VInt_UpdateArt:				; XREF: loc_D50; HInt
 
 ; ===========================================================================
 
-loc_DA6:				; XREF: VInt_Index
+VInt_RoutineA:				; XREF: VInt_Index
 		Z80_Stop
 		Z80_Wait
 		bsr.w	ReadJoypads
@@ -465,15 +465,15 @@ loc_DA6:				; XREF: VInt_Index
 		jsr	(ProcessDMAQueue).l
 
 loc_E64:
-		tst.w	($FFFFF614).w
+		tst.w	(Game_Timer).w
 		beq.w	locret_E70
-		subq.w	#1,($FFFFF614).w
+		subq.w	#1,(Game_Timer).w
 
 locret_E70:
 		rts	
 ; ===========================================================================
 
-loc_E72:				; XREF: VInt_Index
+VInt_RoutineC:				; XREF: VInt_Index
 		Z80_Stop
 		Z80_Wait
 		bsr.w	ReadJoypads
@@ -532,21 +532,21 @@ loc_F54:
 		rts	
 ; ===========================================================================
 
-loc_F8A:				; XREF: VInt_Index
+VInt_RoutineE:				; XREF: VInt_Index
 		bsr.w	sub_106E
 		addq.b	#1,($FFFFF628).w
-		move.b	#$E,($FFFFF62A).w
+		move.b	#$E,(VInt_Routine).w
 		rts	
 ; ===========================================================================
 
-loc_F9A:				; XREF: VInt_Index
+VInt_Routine12:				; XREF: VInt_Index
 		bsr.w	sub_106E
 		move.w	($FFFFF624).w,(a5)
 		move.b	($FFFFF625).w,($FFFFFE07).w
 		bra.w	sub_1642
 ; ===========================================================================
 
-loc_FA6:				; XREF: VInt_Index
+VInt_Routine16:				; XREF: VInt_Index
 		Z80_Stop
 		Z80_Wait
 		bsr.w	ReadJoypads
@@ -575,9 +575,9 @@ loc_FA6:				; XREF: VInt_Index
 		jsr	(ProcessDMAQueue).l
 
 loc_1060:
-		tst.w	($FFFFF614).w
+		tst.w	(Game_Timer).w
 		beq.w	locret_106C
-		subq.w	#1,($FFFFF614).w
+		subq.w	#1,(Game_Timer).w
 
 locret_106C:
 		rts	
@@ -585,7 +585,7 @@ locret_106C:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-sub_106E:				; XREF: loc_C32; et al
+sub_106E:				; XREF: VInt_Routine2; et al
 		Z80_Stop
 		Z80_Wait
 		bsr.w	ReadJoypads
@@ -720,7 +720,7 @@ JoypadInit:				; XREF: GameClrRAM
 
 
 ReadJoypads:
-		lea	($FFFFF604).w,a0 ; address where joypad	states are written
+		lea	(JPad_P1Held).w,a0 ; address where joypad	states are written
 		lea	(IO_Data1).l,a1	; first	joypad port
 		bsr.s	Joypad_Read	; do the first joypad
 		addq.w	#2,a1		; do the second	joypad
@@ -762,7 +762,7 @@ VDP_Loop:
 		dbf	d7,VDP_Loop	; set the VDP registers
 
 		move.w	(VDPSetupArray+2).l,d0
-		move.w	d0,($FFFFF60C).w
+		move.w	d0,(VDP_ComMode2).w
 		move.w	#$8ADF,($FFFFF624).w
 		moveq	#0,d0
 		move.l	#$C0000000,(VDP_Control).l ; set VDP to CRAM write
@@ -772,8 +772,8 @@ VDP_ClrCRAM:
 		move.w	d0,(a1)
 		dbf	d7,VDP_ClrCRAM	; clear	the CRAM
 
-		clr.l	($FFFFF616).w
-		clr.l	($FFFFF61A).w
+		clr.l	(VSRM_PlnAYPos).w
+		clr.l	(HScrl_PlnAXPos).w
 		move.l	d1,-(sp)
 		lea	(VDP_Control).l,a5
 		move.w	#$8F01,(a5)
@@ -833,8 +833,8 @@ loc_1314:
 		bne.s	loc_1314
 
 		move.w	#$8F02,(a5)
-		move.l	#0,($FFFFF616).w
-		move.l	#0,($FFFFF61A).w
+		move.l	#0,(VSRM_PlnAYPos).w
+		move.l	#0,(HScrl_PlnAXPos).w
 		lea	($FFFFF800).w,a1
 		moveq	#0,d0
 		move.w	#$A0,d1
@@ -843,7 +843,7 @@ loc_133A:
 		move.l	d0,(a1)+
 		dbf	d1,loc_133A
 
-		lea	($FFFFCC00).w,a1
+		lea	(HScrll_Buffer).w,a1
 		moveq	#0,d0
 		move.w	#$FF,d1
 
@@ -861,12 +861,15 @@ loc_134A:
 
 
 SoundDriverLoad:			; XREF: GameClrRAM; TitleScreen
-		nop	
 		Z80_Stop
 		Z80_StartReset
-		lea	(Kos_Z80).l,a0	; load sound driver
+		lea	(Z80_SoundDriver).l,a0	; load sound driver
 		lea	($A00000).l,a1
-		bsr.w	KosDec		; decompress
+		move.w	#(Z80_DriverEnd-Z80_SoundDriver)-1,d0
+
+@SendDriverToZ80:
+		move.b	(a0)+,(a1)+
+		dbf	d0,@SendDriverToZ80
 		Z80_StopReset
 		nop	
 		nop	
@@ -920,7 +923,7 @@ PauseGame:				; XREF: Level_MainLoop; et al
 		beq.s	Unpause		; if not, branch
 		tst.w	($FFFFF63A).w	; is game already paused?
 		bne.s	loc_13BE	; if yes, branch
-		btst	#7,($FFFFF605).w ; is Start button pressed?
+		btst	#7,(JPad_P1Press).w ; is Start button pressed?
 		beq.s	Pause_DoNothing	; if not, branch
 
 loc_13BE:
@@ -928,24 +931,24 @@ loc_13BE:
 		move.b	#1,($FFFFF003).w ; pause music
 
 loc_13CA:
-		move.b	#$10,($FFFFF62A).w
+		move.b	#$10,(VInt_Routine).w
 		bsr.w	DelayProgram
 		tst.b	($FFFFFFE1).w	; is slow-motion cheat on?
 		beq.s	Pause_ChkStart	; if not, branch
-		btst	#6,($FFFFF605).w ; is button A pressed?
+		btst	#6,(JPad_P1Press).w ; is button A pressed?
 		beq.s	Pause_ChkBC	; if not, branch
-		move.b	#ScnID_Title,($FFFFF600).w ; set game mode to 4 (title screen)
+		move.b	#ScnID_Title,(Game_Scene).w ; set game mode to 4 (title screen)
 		bra.s	loc_1404
 ; ===========================================================================
 
 Pause_ChkBC:				; XREF: PauseGame
-		btst	#4,($FFFFF604).w ; is button B pressed?
+		btst	#4,(JPad_P1Held).w ; is button B pressed?
 		bne.s	Pause_SlowMo	; if yes, branch
-		btst	#5,($FFFFF605).w ; is button C pressed?
+		btst	#5,(JPad_P1Press).w ; is button C pressed?
 		bne.s	Pause_SlowMo	; if yes, branch
 
 Pause_ChkStart:				; XREF: PauseGame
-		btst	#7,($FFFFF605).w ; is Start button pressed?
+		btst	#7,(JPad_P1Press).w ; is Start button pressed?
 		beq.s	loc_13CA	; if not, branch
 
 loc_1404:				; XREF: PauseGame
@@ -1008,7 +1011,7 @@ NemDec:
     lea NemDec_WriteRowToVDP(pc),a3
  
 NemDec_Main:
-    lea $FFFFAA00,a1        ; load Nemesis decompression buffer
+    lea NemDec_Buffer,a1        ; load Nemesis decompression buffer
     move.w  (a0)+,d2        ; get number of patterns
     bpl.s   @0          ; are we in Mode 0?
     lea $A(a3),a3       ; if not, use Mode 1
@@ -1270,7 +1273,7 @@ RunPLC_RAM:				; XREF: Pal_FadeTo
 		bne.s	locret_1640
 		movea.l	($FFFFF680).w,a0
 		lea	(loc_1502).l,a3
-		lea	($FFFFAA00).w,a1
+		lea	(NemDec_Buffer).w,a1
 		move.w	(a0)+,d2
 		bpl.s	loc_160E
 		adda.w	#$A,a3
@@ -1300,7 +1303,7 @@ locret_1640:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-sub_1642:				; XREF: loc_C44; loc_F54; loc_F9A
+sub_1642:				; XREF: VInt_Routine4; loc_F54; VInt_Routine12
 		tst.w	($FFFFF6F8).w
 		beq.w	locret_16DA
 		move.w	#9,($FFFFF6FA).w
@@ -1337,7 +1340,7 @@ loc_1676:				; XREF: sub_1642
 		move.l	($FFFFF6EC).w,d2
 		move.l	($FFFFF6F0).w,d5
 		move.l	($FFFFF6F4).w,d6
-		lea	($FFFFAA00).w,a1
+		lea	(NemDec_Buffer).w,a1
 
 loc_16AA:				; XREF: sub_165E
 		movea.w	#8,a5
@@ -1827,14 +1830,14 @@ Pal_ToBlack:
 
 loc_1DCE:
 		bsr.w	RunPLC_RAM
-		move.b	#$12,($FFFFF62A).w
+		move.b	#$12,(VInt_Routine).w
 		bsr.w	DelayProgram
 		bchg	#$00,d6					; MJ: change delay counter
 		beq	loc_1DCE				; MJ: if null, delay a frame
 		bsr.s	Pal_FadeIn
 		subq.b	#$02,d4					; MJ: decrease colour check
 		bne	loc_1DCE				; MJ: if it has not reached null, branch
-		move.b	#$12,($FFFFF62A).w			; MJ: wait for V-blank again (so colours transfer)
+		move.b	#$12,(VInt_Routine).w			; MJ: wait for V-blank again (so colours transfer)
 		bra	DelayProgram				; MJ: ''
 
 ; End of function Pal_FadeTo
@@ -1918,7 +1921,7 @@ Pal_FadeFrom:
 
 loc_1E5C:
 		bsr.w	RunPLC_RAM
-		move.b	#$12,($FFFFF62A).w
+		move.b	#$12,(VInt_Routine).w
 		bsr.w	DelayProgram
 		bchg	#$00,d6					; MJ: change delay counter
 		beq	loc_1E5C				; MJ: if null, delay a frame
@@ -2010,14 +2013,14 @@ PalWhite_Loop:
 
 loc_1EF4:
         bsr.w RunPLC_RAM
-        move.b #$12,($FFFFF62A).w
+        move.b #$12,(VInt_Routine).w
         bsr.w DelayProgram
         bchg #$00,d6 ; MJ: change delay counter
         beq loc_1EF4 ; MJ: if null, delay a frame
         bsr.s Pal_WhiteToBlack
         subq.b #$02,d4 ; MJ: decrease colour check
         bne loc_1EF4 ; MJ: if it has not reached null, branch
-        move.b #$12,($FFFFF62A).w ; MJ: wait for V-blank again (so colours transfer)
+        move.b #$12,(VInt_Routine).w ; MJ: wait for V-blank again (so colours transfer)
         bra DelayProgram ; MJ: ''
 ; End of function Pal_MakeWhite
 
@@ -2099,7 +2102,7 @@ Pal_MakeFlash:
 
 loc_1F86:
         bsr.w RunPLC_RAM
-        move.b #$12,($FFFFF62A).w
+        move.b #$12,(VInt_Routine).w
         bsr.w DelayProgram
         bchg #$00,d6 ; MJ: change delay counter
         beq loc_1F86 ; MJ: if null, delay a frame
@@ -2366,7 +2369,7 @@ Pal_Sonic:	incbin	"Objects/Players/Sonic/Main Palette.pal"
 Pal_TZ:	incbin	"Levels/Test Zone/Main Palette.pal"
 
 ; ---------------------------------------------------------------------------
-; Subroutine to	delay the program by ($FFFFF62A) frames
+; Subroutine to	delay the program by (VInt_Routine) frames
 ; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
@@ -2376,7 +2379,7 @@ DelayProgram:				; XREF: PauseGame
 		move	#$2300,sr
 
 loc_29AC:
-		tst.b	($FFFFF62A).w
+		tst.b	(VInt_Routine).w
 		bne.s	loc_29AC
 		rts	
 ; End of function DelayProgram
@@ -2645,7 +2648,7 @@ SegaScreen:				; XREF: GameModeArray
 		move.w	#$8B00,(a6)
 		clr.b	($FFFFF64E).w
 		move	#$2700,sr
-		move.w	($FFFFF60C).w,d0
+		move.w	(VDP_ComMode2).w,d0
 		andi.b	#$BF,d0
 		move.w	d0,(VDP_Control).l
 		bsr.w	ClearScreen
@@ -2678,32 +2681,32 @@ SegaScreen:				; XREF: GameModeArray
 		move.w	#0,($FFFFF662).w
 		move.w	#0,($FFFFF660).w
         move.b    #0,($FFFFFFD0).w
-		move.w	($FFFFF60C).w,d0
+		move.w	(VDP_ComMode2).w,d0
 		ori.b	#$40,d0
 		move.w	d0,(VDP_Control).l
 
 Sega_WaitPallet:
-		move.b	#2,($FFFFF62A).w
+		move.b	#2,(VInt_Routine).w
 		bsr.w	DelayProgram
 		bsr.w	PalCycle_Sega
 		bne.s	Sega_WaitPallet
 
 		move.b	#$E1,d0
 		bsr.w	PlaySound_Special ; play "SEGA"	sound
-		move.b	#$14,($FFFFF62A).w
+		move.b	#$14,(VInt_Routine).w
 		bsr.w	DelayProgram
-		move.w	#$1E,($FFFFF614).w
+		move.w	#$1E,(Game_Timer).w
 
 Sega_WaitEnd:
-		move.b	#2,($FFFFF62A).w
+		move.b	#2,(VInt_Routine).w
 		bsr.w	DelayProgram
-		tst.w	($FFFFF614).w
+		tst.w	(Game_Timer).w
 		beq.s	Sega_GotoTitle
-		andi.b	#$80,($FFFFF605).w ; is	Start button pressed?
+		andi.b	#$80,(JPad_P1Press).w ; is	Start button pressed?
 		beq.s	Sega_WaitEnd	; if not, branch
 
 Sega_GotoTitle:
-		move.b	#ScnID_Title,($FFFFF600).w ; go to title screen
+		move.b	#ScnID_Title,(Game_Scene).w ; go to title screen
 		rts	
 ; ===========================================================================
 
@@ -2782,7 +2785,6 @@ Title_LoadText:
 		move.b	#$8A,d0		; play title screen music
 		bsr.w	PlaySound_Special
 		move.b	#0,($FFFFFFFA).w ; disable debug mode
-		move.w	#$178,($FFFFF614).w ; run title	screen for $178	frames
 		lea	($FFFFD080).w,a1
 		moveq	#0,d0
 		move.w	#$F,d1
@@ -2794,13 +2796,13 @@ Title_ClrObjRam2:
 		bsr.w	LoadPLC2
 		move.w	#0,($FFFFFFE4).w
 		move.w	#0,($FFFFFFE6).w
-		move.w	($FFFFF60C).w,d0
+		move.w	(VDP_ComMode2).w,d0
 		ori.b	#$40,d0
 		move.w	d0,(VDP_Control).l
 		bsr.w	Pal_FadeTo
 
 loc_317C:
-		move.b	#4,($FFFFF62A).w
+		move.b	#4,(VInt_Routine).w
 		bsr.w	DelayProgram
 		jsr	ObjectsLoad
 		jsr	BuildSprites
@@ -2817,7 +2819,7 @@ Title_RegionJ:				; XREF: Title_ChkRegion
 Title_EnterCheat:			; XREF: Title_ChkRegion
 		move.w	($FFFFFFE4).w,d0
 		adda.w	d0,a0
-		move.b	($FFFFF605).w,d0 ; get button press
+		move.b	(JPad_P1Press).w,d0 ; get button press
 		andi.b	#$F,d0		; read only up/down/left/right buttons
 		cmp.b	(a0),d0		; does button press match the cheat code?
 		bne.s	loc_3210	; if not, branch
@@ -2849,25 +2851,25 @@ loc_3210:				; XREF: Title_EnterCheat
 		move.w	#0,($FFFFFFE4).w
 
 Title_CountC:
-		move.b	($FFFFF605).w,d0
+		move.b	(JPad_P1Press).w,d0
 		andi.b	#$20,d0		; is C button pressed?
 		beq.s	loc_3230	; if not, branch
 		addq.w	#1,($FFFFFFE6).w ; increment C button counter
 
 loc_3230:
-		andi.b	#$80,($FFFFF605).w ; check if Start is pressed
+		andi.b	#$80,(JPad_P1Press).w ; check if Start is pressed
 		beq.w	loc_317C	; if not, branch
 
 Title_ChkLevSel:
 		tst.b	($FFFFFFE0).w	; check	if level select	code is	on
 		beq.w	PlayLevel	; if not, play level
-		btst	#6,($FFFFF604).w ; check if A is pressed
+		btst	#6,(JPad_P1Held).w ; check if A is pressed
 		beq.w	PlayLevel	; if not, play level
-		move.b	#4,($FFFFF62A).w
+		move.b	#4,(VInt_Routine).w
 		bsr.w	DelayProgram
 		moveq	#PalID_LevSel,d0
 		bsr.w	PalLoad2	; load level select pallet
-		lea	($FFFFCC00).w,a1
+		lea	(HScrll_Buffer).w,a1
 		moveq	#0,d0
 		move.w	#$DF,d1
 
@@ -2875,7 +2877,7 @@ Title_ClrScroll:
 		move.l	d0,(a1)+
 		dbf	d1,Title_ClrScroll ; fill scroll data with 0
 
-		move.l	d0,($FFFFF616).w
+		move.l	d0,(VSRM_PlnAYPos).w
 		move	#$2700,sr
 		lea	(VDP_Data).l,a6
 		move.l	#$60000003,(VDP_Control).l
@@ -2892,13 +2894,13 @@ Title_ClrVram:
 ; ---------------------------------------------------------------------------
 
 LevelSelect:
-		move.b	#4,($FFFFF62A).w
+		move.b	#4,(VInt_Routine).w
 		bsr.w	DelayProgram
 		bsr.w	LevSelControls
 		bsr.w	RunPLC_RAM
 		tst.l	($FFFFF680).w
 		bne.s	LevelSelect
-		andi.b	#$F0,($FFFFF605).w ; is	A, B, C, or Start pressed?
+		andi.b	#$F0,(JPad_P1Press).w ; is	A, B, C, or Start pressed?
 		beq.s	LevelSelect	; if not, branch
 		move.w	($FFFFFF82).w,d0
 		cmpi.w	#2,d0		; have you selected item $14 (sound test)?
@@ -2923,7 +2925,7 @@ LevSel_Level:			; XREF: LevelSelect
 		move.w	d0,($FFFFFE10).w ; set level number
 
 PlayLevel:
-		move.b	#ScnID_Level,($FFFFF600).w ; set	screen mode to $0C (level)
+		move.b	#ScnID_Level,(Game_Scene).w ; set	screen mode to $0C (level)
 		move.b	#3,($FFFFFE12).w ; set lives to	3
 		moveq	#0,d0
 		move.w	d0,($FFFFFE20).w ; clear rings
@@ -2961,7 +2963,7 @@ LevelSelectCode_US:
 
 
 LevSelControls:				; XREF: LevelSelect
-		move.b	($FFFFF605).w,d1
+		move.b	(JPad_P1Press).w,d1
 		andi.b	#3,d1		; is up/down pressed and held?
 		bne.s	LevSel_UpDown	; if yes, branch
 		subq.w	#1,($FFFFFF80).w ; subtract 1 from time	to next	move
@@ -2969,7 +2971,7 @@ LevSelControls:				; XREF: LevelSelect
 
 LevSel_UpDown:
 		move.w	#$B,($FFFFFF80).w ; reset time delay
-		move.b	($FFFFF604).w,d1
+		move.b	(JPad_P1Held).w,d1
 		andi.b	#3,d1		; is up/down pressed?
 		beq.s	LevSel_SndTest	; if not, branch
 		move.w	($FFFFFF82).w,d0
@@ -2996,7 +2998,7 @@ LevSel_Refresh:
 LevSel_SndTest:				; XREF: LevSelControls
 		cmpi.w	#2,($FFFFFF82).w ; is	item $14 selected?
 		bne.s	LevSel_NoMove	; if not, branch
-		move.b	($FFFFF605).w,d1
+		move.b	(JPad_P1Press).w,d1
 		andi.b	#$C,d1		; is left/right	pressed?
 		beq.s	LevSel_NoMove	; if not, branch
 		move.w	($FFFFFF84).w,d0
@@ -3132,7 +3134,7 @@ MusicList:
 ; ---------------------------------------------------------------------------
 
 Level:					; XREF: GameModeArray
-		bset	#7,($FFFFF600).w ; add $80 to screen mode (for pre level sequence)
+		bset	#7,(Game_Scene).w ; add $80 to screen mode (for pre level sequence)
 		move.b    #0,($FFFFFFD0).w
 		tst.w	($FFFFFFF0).w
 		bmi.s	loc_37B6
@@ -3225,7 +3227,7 @@ Level_ClrVars3:
 		move.b	#$34,($FFFFD080).w ; load title	card object
 
 Level_TtlCard:
-		move.b	#$C,($FFFFF62A).w
+		move.b	#$C,(VInt_Routine).w
 		bsr.w	DelayProgram
 		jsr	ObjectsLoad
 		jsr	BuildSprites
@@ -3255,15 +3257,15 @@ loc_3946:
 Level_ChkDebug:
 		tst.b	($FFFFFFE2).w	; has debug cheat been entered?
 		beq.s	Level_LoadObj	; if not, branch
-		btst	#6,($FFFFF604).w ; is A	button pressed?
+		btst	#6,(JPad_P1Held).w ; is A	button pressed?
 		beq.s	Level_LoadObj	; if not, branch
 		move.b	#1,($FFFFFFFA).w ; enable debug	mode
 
 Level_LoadObj:
-		move.w	#0,($FFFFF602).w
-		move.w	#0,($FFFFF604).w
+		move.w	#0,(JPad_P1HeldLogic).w
+		move.w	#0,(JPad_P1Held).w
 		jsr	ObjPosLoad
-		move.b	#0,(Rings_manager_routine).w
+		move.b	#0,(Rings_MngrRtn).w
 		jsr	RingsManager
 		jsr	ObjectsLoad
 		jsr	BuildSprites
@@ -3292,7 +3294,7 @@ loc_39E8:
 		move.w	#3,d1
 
 Level_DelayLoop:
-		move.b	#8,($FFFFF62A).w
+		move.b	#8,(VInt_Routine).w
 		bsr.w	DelayProgram
 		dbf	d1,Level_DelayLoop
 
@@ -3316,7 +3318,7 @@ Level_ClrCardArt:
 		jsr	(LoadPLC).l	; load animal patterns (level no. + $15)
 
 Level_StartGame:
-		bclr	#7,($FFFFF600).w ; subtract 80 from screen mode
+		bclr	#7,(Game_Scene).w ; subtract 80 from screen mode
 
 ; ---------------------------------------------------------------------------
 ; Main level loop (when	all title card and loading sequences are finished)
@@ -3324,7 +3326,7 @@ Level_StartGame:
 
 Level_MainLoop:
         bsr.w    PauseGame
-        move.b    #8,($FFFFF62A).w
+        move.b    #8,(VInt_Routine).w
         bsr.w    DelayProgram
         addq.w    #1,($FFFFFE04).w    ; add 1 to level timer
         jsr    ObjectsLoad
@@ -3347,7 +3349,7 @@ loc_3B14:
         bsr.w    OscillateNumDo
         bsr.w    ChangeRingFrame
         bsr.w    SignpostArtLoad
-        cmpi.b    #ScnID_Level,($FFFFF600).w
+        cmpi.b    #ScnID_Level,(Game_Scene).w
         beq.w    Level_MainLoop    ; if screen mode is $0C    (level), branch
         rts            ; quit
 ; ===========================================================================
@@ -3649,7 +3651,7 @@ LevSz_SonicPos:
 		moveq	#0,d0
 		move.w	(a1),d0
 		move.w	d0,($FFFFD00C).w ; set Sonic's position on y-axis
-		move.b	($FFFFF600).w,d2			; MJ: load game mode
+		move.b	(Game_Scene).w,d2			; MJ: load game mode
 		andi.w	#$00FC,d2				; MJ: keep in range
 		cmpi.b	#$04,d2					; MJ: is screen mode at title?
 		bne	loc_60D0				; MJ: if not, branch
@@ -3660,7 +3662,7 @@ LevSz_SonicPos:
 
 loc_60D0:				; XREF: LevSz_ChkLamp
 		clr.w	($FFFFF7A8).w		; reset Sonic's position tracking index
-		lea	($FFFFCB00).w,a2	; load the tracking array into a2
+		lea	(Plyr_PrvPosBffr).w,a2	; load the tracking array into a2
 		moveq	#63,d2				; begin a 64-step loop
 @looppoint:
 		move.w	d1,(a2)+			; fill in X
@@ -3778,12 +3780,12 @@ loc_628E:
 		bsr.w	ScrollHoriz
 		bsr.w	ScrollVertical
 		bsr.w	DynScrResizeLoad
-		move.w	($FFFFF700).w,($FFFFF61A).w
-		move.w	($FFFFF704).w,($FFFFF616).w
-		move.w	($FFFFF708).w,($FFFFF61C).w
-		move.w	($FFFFF70C).w,($FFFFF618).w
-		move.w	($FFFFF718).w,($FFFFF620).w
-		move.w	($FFFFF71C).w,($FFFFF61E).w
+		move.w	($FFFFF700).w,(HScrl_PlnAXPos).w
+		move.w	($FFFFF704).w,(VSRM_PlnAYPos).w
+		move.w	($FFFFF708).w,(HScrl_PlnBXPos).w
+		move.w	($FFFFF70C).w,(VSRM_PlnBYPos).w
+		move.w	($FFFFF718).w,(Copy_PlnBXPos3).w
+		move.w	($FFFFF71C).w,(Copy_PlnBYPos3).w
 		moveq	#0,d0
 		move.b	($FFFFFE10).w,d0
 		add.w	d0,d0
@@ -3810,7 +3812,7 @@ Deform_TZ:				; XREF: Deform_Index
 		moveq	#0,d5
 		bsr.w	ScrollBlock1
 		bsr.w	ScrollBlock4
-		lea	($FFFFCC00).w,a1
+		lea	(HScrll_Buffer).w,a1
 		move.w	($FFFFF704).w,d0
 		andi.w	#$7FF,d0
 		lsr.w	#5,d0
@@ -3819,11 +3821,11 @@ Deform_TZ:				; XREF: Deform_Index
 		move.w	d0,($FFFFF714).w
 		move.w	d0,d4
 		bsr.w	ScrollBlock3
-		move.w	($FFFFF70C).w,($FFFFF618).w
+		move.w	($FFFFF70C).w,(VSRM_PlnBYPos).w
 		move.w	#$6F,d1
 		sub.w	d4,d1
 		move.w	($FFFFF700).w,d0
-		cmpi.b	#ScnID_Title,($FFFFF600).w
+		cmpi.b	#ScnID_Title,(Game_Scene).w
 		bne.s	loc_633C
 		moveq	#0,d0
 
@@ -3914,7 +3916,7 @@ ScrollHoriz2:				; XREF: ScrollHoriz
 		addq.b	#4,d1
 		move.w	($FFFFF7A8).w,d0
 		sub.b	d1,d0
-		lea	($FFFFCB00).w,a1
+		lea	(Plyr_PrvPosBffr).w,a1
 		move.w	(a1,d0.w),d0
 		and.w	#$3FFF,d0
 		bra.s	@cont2
@@ -4280,7 +4282,7 @@ locret_6884:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-sub_6886:				; XREF: loc_C44
+sub_6886:				; XREF: VInt_Routine4
 		lea	(VDP_Control).l,a5
 		lea	(VDP_Data).l,a6
 		lea	($FFFFF756).w,a2
@@ -4811,7 +4813,7 @@ LoadZoneTiles:
 
 		jsr	(QueueDMATransfer).l	; Use d1, d2, and d3 to locate the decompressed art and ready for transfer to VRAM
 		move.w	d7,-(sp)		; Store d7 in the Stack
-		move.b	#$C,($FFFFF62A).w
+		move.b	#$C,(VInt_Routine).w
 		bsr.w	DelayProgram
 		bsr.w	RunPLC_RAM
 		move.w	(sp)+,d7		; Restore d7 from the Stack
@@ -4867,12 +4869,13 @@ locret_6D10:
 ; This method now releases free ram space from A408 - A7FF
 
 LevelLayoutLoad:
-		move.w	($FFFFFE10).w,d0
-		lsl.b	#6,d0
-		lsr.w	#4,d0
-		move.w	d0,d2
-		add.w	d0,d0
-		add.w	d2,d0
+		moveq	#0,d0
+		moveq	#0,d1
+		move.b	($FFFFFE10).w,d0
+		lsl.w	#3,d0
+		move.b	($FFFFFE11).w,d1
+		lsl.w	#2,d1
+		add.w	d1,d0
 		lea	(Level_Index).l,a1
 		movea.l	(a1,d0.w),a1				; MJ: moving the address strait to a1 rather than adding a word to an address
 		move.l	a1,($FFFFA400).w			; MJ: save location of layout to $FFFFA400
@@ -6176,7 +6179,7 @@ loc_8486:
 		move.b	Obj_SprWidth(a0),Obj_SprWidth(a1)
 		move.b	(a4)+,$38(a1)
 		subq.w	#1,d1
-		lea	($FFFFD800).w,a1
+		lea	(ObMem_Dynamic).w,a1
 		move.w	#$5F,d0
 
 loc_84AA:
@@ -7066,7 +7069,7 @@ Obj07_sub_4:
 	addq.b	#2,$24(a0)
 	move.b	#0,$20(a0)
 	move.w	#$80,Obj_Priority(a0)
-	subq.w	#1,(Perfect_rings_left).w
+	subq.w	#1,(Rings_Left).w
 	bsr.w	CollectRing
 
 Obj07_sub_6:
@@ -7297,7 +7300,7 @@ Obj26_SetBroken:
 		move.w	Obj_RespawnIdx(a0),d0	; get address in respawn table
 		movea.w	d0,a2	; load address into a2
 		bset	#0,(a2)
-		move.b	#9,$1C(a0)	; set monitor type to broken
+		move.b	#$B,$1C(a0)	; set monitor type to broken
 		bra.w	DisplaySprite
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -7325,7 +7328,6 @@ Obj2E_Main:				; XREF: Obj2E_Index
 		move.w	#-$300,$12(a0)
 		moveq	#0,d0
 		move.b	$1C(a0),d0
-		addq.b	#2,d0
 		move.b	d0,$1A(a0)
 		movea.l	#Map_obj26,a1
 		add.b	d0,d0
@@ -7335,40 +7337,52 @@ Obj2E_Main:				; XREF: Obj2E_Index
 
 Obj2E_Move:				; XREF: Obj2E_Index
 		tst.w	$12(a0)		; is object moving?
-		bpl.w	Obj2E_ChkEggman	; if not, branch
+		bpl.w	PowerUp_GetPowers	; if not, branch
 		bsr.w	SpeedToPos
 		addi.w	#$18,$12(a0)	; reduce object	speed
 		rts	
 ; ===========================================================================
 
-Obj2E_ChkEggman:    ; XREF: Obj2E_Move
-        addq.b    #2,$24(a0)
-        move.w    #29,$1E(a0)
-        move.b    $1C(a0),d0
-        cmpi.b    #1,d0; does monitor contain Eggman?
-        bne.s    Obj2E_ChkSonic ; if not, go and check for the next monitor type (1-up icon)
+PowerUp_GetPowers:    ; XREF: Obj2E_Move
+        addq.b	#2,$24(a0)
+        move.w	#29,$1E(a0)
+		moveq	#0,d0
+        move.b	$1C(a0),d0
+		asl.b	d0
+		move.w	PowerUp_Table(pc,d0.w),d1
+		jmp	PowerUp_Table(pc,d1.w)
+
+PowerUp_Table:
+	dc.w	PowerUp_Null-PowerUp_Table		; Static
+	dc.w	PowerUp_Ring-PowerUp_Table		; 10 rings
+	dc.w	PowerUp_Shield-PowerUp_Table	; Normal shield
+	dc.w	PowerUp_Null-PowerUp_Table		; Flame shield
+	dc.w	PowerUp_Null-PowerUp_Table		; Lightning shield
+	dc.w	PowerUp_Null-PowerUp_Table		; Bubble shield
+	dc.w	PowerUp_Invinc-PowerUp_Table	; Invincibility
+	dc.w	PowerUp_Shoe-PowerUp_Table		; Speed shoes
+	dc.w	PowerUp_1Up-PowerUp_Table		; 1-Up
+	dc.w	PowerUp_Eggman-PowerUp_Table	; Robotnik
+	dc.w	PowerUp_Null-PowerUp_Table		; Super
+
+PowerUp_Null:
+		rts
+
+PowerUp_Eggman:
         move.l    a0,a1 ; move a0 to a1, because Touch_ChkHurt wants the damaging object to be in a1
         move.l    a0,-(sp)
         lea    ($FFFFD000).w,a0 ; put Sonic's ram address in a0, because Touch_ChkHurt wants the damaged object to be in a0
         jsr    Touch_ChkHurt ; run the Touch_ChkHurt routine
         move.l    (sp)+,a0
         rts
-; ===========================================================================
 
-Obj2E_ChkSonic:
-		cmpi.b	#2,d0		; does monitor contain Sonic?
-		bne.s	Obj2E_ChkShoes
-
-ExtraLife:
+PowerUp_1Up:
 		addq.b	#1,($FFFFFE12).w ; add 1 to the	number of lives	you have
 		addq.b	#1,($FFFFFE1C).w ; add 1 to the	lives counter
 		move.w	#$88,d0
 		jmp	(PlaySound).l	; play extra life music
-; ===========================================================================
 
-Obj2E_ChkShoes:
-		cmpi.b	#3,d0		; does monitor contain speed shoes?
-		bne.s	Obj2E_ChkShield
+PowerUp_Shoe:
 		move.b	#1,($FFFFFE2E).w ; speed up the	BG music
 		move.w	#$4B0,($FFFFD034).w ; time limit for the power-up
 		move.w	#$C00,($FFFFF760).w ; change Sonic's top speed
@@ -7376,20 +7390,14 @@ Obj2E_ChkShoes:
 		move.w	#$80,($FFFFF764).w
 		move.w	#$E2,d0
 		jmp	(PlaySound).l	; Speed	up the music
-; ===========================================================================
 
-Obj2E_ChkShield:
-		cmpi.b	#4,d0		; does monitor contain a shield?
-		bne.s	Obj2E_ChkInvinc
+PowerUp_Shield:
 		move.b	#1,($FFFFFE2C).w ; give	Sonic a	shield
 		move.b	#$38,($FFFFD180).w ; load shield object	($38)
 		move.w	#$AF,d0
 		jmp	(PlaySound).l	; play shield sound
-; ===========================================================================
 
-Obj2E_ChkInvinc:
-		cmpi.b	#5,d0		; does monitor contain invincibility?
-		bne.s	Obj2E_ChkRings
+PowerUp_Invinc:
 		move.b	#1,($FFFFFE2D).w ; make	Sonic invincible
 		move.w	#$4B0,($FFFFD032).w ; time limit for the power-up
 		move.b	#$38,($FFFFD200).w ; load stars	object ($3801)
@@ -7404,39 +7412,25 @@ Obj2E_ChkInvinc:
 		bne.s	Obj2E_NoMusic	; if yes, branch
 		move.w	#$87,d0
 		jmp	(PlaySound).l	; play invincibility music
-; ===========================================================================
 
 Obj2E_NoMusic:
 		rts	
-; ===========================================================================
 
-Obj2E_ChkRings:
-		cmpi.b	#6,d0		; does monitor contain 10 rings?
-		bne.s	Obj2E_ChkS
+PowerUp_Ring:
 		addi.w	#$A,($FFFFFE20).w ; add	10 rings to the	number of rings	you have
 		ori.b	#1,($FFFFFE1D).w ; update the ring counter
 		cmpi.w	#100,($FFFFFE20).w ; check if you have 100 rings
 		bcs.s	Obj2E_RingSound
 		bset	#1,($FFFFFE1B).w
-		beq.w	ExtraLife
+		beq.w	PowerUp_1Up
 		cmpi.w	#200,($FFFFFE20).w ; check if you have 200 rings
 		bcs.s	Obj2E_RingSound
 		bset	#2,($FFFFFE1B).w
-		beq.w	ExtraLife
+		beq.w	PowerUp_1Up
 
 Obj2E_RingSound:
 		move.w	#$B5,d0
 		jmp	(PlaySound).l	; play ring sound
-; ===========================================================================
-
-Obj2E_ChkS:
-		cmpi.b	#7,d0		; does monitor contain 'S'
-		bne.s	Obj2E_ChkEnd
-		nop	
-
-Obj2E_ChkEnd:
-		rts			; 'S' and goggles monitors do nothing
-; ===========================================================================
 
 Obj2E_Delete:				; XREF: Obj2E_Index
 		subq.w	#1,$1E(a0)
@@ -7721,7 +7715,7 @@ Obj32_MZBlock:				; XREF: Obj32_Pressed
 		subq.w	#8,d3
 		move.w	#$20,d4
 		move.w	#$10,d5
-		lea	($FFFFD800).w,a1 ; begin checking object RAM
+		lea	(ObMem_Dynamic).w,a1 ; begin checking object RAM
 		move.w	#$5F,d6
 
 Obj32_MZLoop:
@@ -8380,7 +8374,7 @@ Obj39_SetWait:				; XREF: Obj39_Main
 ; ===========================================================================
 
 Obj39_Wait:				; XREF: Obj39_Index
-		move.b	($FFFFF605).w,d0
+		move.b	(JPad_P1Press).w,d0
 		andi.b	#$70,d0		; is button A, B or C pressed?
 		bne.s	Obj39_ChgMode	; if yes, branch
 		btst	#0,$1A(a0)
@@ -8394,7 +8388,7 @@ Obj39_Wait:				; XREF: Obj39_Index
 Obj39_ChgMode:				; XREF: Obj39_Wait
 		tst.b	($FFFFFE1A).w	; is time over flag set?
 		bne.s	Obj39_ResetLvl	; if yes, branch
-		move.b	#ScnID_SEGA,($FFFFF600).w ; set mode to 0 (Sega screen)
+		move.b	#ScnID_SEGA,(Game_Scene).w ; set mode to 0 (Sega screen)
 		bra.s	Obj39_Display
 ; ===========================================================================
 
@@ -8509,7 +8503,7 @@ Obj3A_TimeBonus:            ; XREF: Obj3A_Index
         bsr.w    DisplaySprite
         move.b    #1,($FFFFF7D6).w ; set time/ring bonus update flag
         moveq    #0,d0
-        btst    #6,($FFFFF605).w ; GIO: is the A button pressed?
+        btst    #6,(JPad_P1Press).w ; GIO: is the A button pressed?
         bne.s   Obj3A_SkipTally    ; GIO: if yes, branch
         tst.w    ($FFFFF7D2).w    ; is time bonus    = zero?
         beq.s    Obj3A_RingBonus    ; if yes, branch
@@ -8565,7 +8559,7 @@ Obj3A_NextLevel:			; XREF: Obj3A_Index
 		move.w	d0,($FFFFFE10).w ; set level number
 		tst.w	d0
 		bne.s	Obj3A_RestartLevel
-		move.b	#0,($FFFFF600).w ; set game mode to level (00)
+		move.b	#0,(Game_Scene).w ; set game mode to level (00)
 		bra.s	Obj3A_Display2
 ; ===========================================================================
 
@@ -9118,7 +9112,7 @@ SpeedToPos:
 
 
 DisplaySprite:
-        lea	($FFFFAC00).w,a1
+        lea	(Sprite_InputTbl).w,a1
         adda.w	Obj_Priority(a0),a1	; get sprite priority
         cmpi.w	#$7E,(a1)	; is this part of the queue full?
         bcc.s	@QueueIsFull	; if yes, branch
@@ -9138,7 +9132,7 @@ DisplaySprite:
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
 DisplaySprite2:
-        lea	($FFFFAC00).w,a2
+        lea	(Sprite_InputTbl).w,a2
         adda.w	Obj_Priority(a1),a2
         cmpi.w	#$7E,(a2)
         bcc.s	@QueueIsFull
@@ -9157,7 +9151,7 @@ DisplaySprite2:
 ; ---------------------------------------------------------------------------
 
 DisplaySprite3:
-    	lea	($FFFFAC00).w,a1
+    	lea	(Sprite_InputTbl).w,a1
     	adda.w	d0,a1
     	cmpi.w	#$7E,(a1)
     	bhs.s	@QueueIsFull
@@ -9208,7 +9202,7 @@ BuildSprites:                ; XREF: TitleScreen; et al
         beq.s    BuildSprites_2
         jsr    loc_40804
 BuildSprites_2:
-        lea    ($FFFFAC00).w,a4
+        lea    (Sprite_InputTbl).w,a4
         moveq    #7,d7
 
 loc_D66A:
@@ -9687,7 +9681,7 @@ ObjPosLoad_States:
 ObjPosLoad_Init:
 	addq.b	#4,($FFFFF76C).w
  
-	lea     (Object_Respawn_Table).w,a0
+	lea     (Obj_RespawnTbl).w,a0
 	moveq   #0,d0
 	move.w  #$BF,d1 ; set loop counter
 OPLBack1:
@@ -9709,7 +9703,7 @@ OPLBack1:
 	; initialize each object load address with the first object in the layout
 	move.l	a0,($FFFFF770).w
 	move.l	a0,($FFFFF774).w
-	lea	(Object_Respawn_Table).w,a3
+	lea	(Obj_RespawnTbl).w,a3
  
 	move.w	($FFFFF700).w,d6
 	subi.w	#$80,d6	; look one chunk to the left
@@ -9733,7 +9727,7 @@ OPL2:
 	move.l	a0,($FFFFF770).w	; remember rightmost object that has been processed, so far (we still need to look forward)
 	move.w	a3,($FFFFF778).w	; and its respawn table index
  
-	lea	(Object_Respawn_Table).w,a3	; reset a3
+	lea	(Obj_RespawnTbl).w,a3	; reset a3
 	movea.l	($FFFFF774).w,a0	; reset a0
 	subi.w	#$80,d6		; look even farther left (any object behind this is out of range)
 	bcs.s	OPL3		; branch, if camera position would be behind level's left boundary
@@ -10109,7 +10103,7 @@ LoadObj:
 
 
 SingleObjLoad:
-		lea	($FFFFD800).w,a1 ; start address for object RAM
+		lea	(ObMem_Dynamic).w,a1 ; start address for object RAM
 		move.w	#$5F,d0
 
 loc_DA94:
@@ -10147,7 +10141,7 @@ locret_DABC:
 
 RingsManager:
 	moveq	#0,d0
-	move.b	(Rings_manager_routine).w,d0
+	move.b	(Rings_MngrRtn).w,d0
 	move.w	RingsManager_States(pc,d0.w),d0
 	jmp	RingsManager_States(pc,d0.w)
 ; ===========================================================================
@@ -10158,10 +10152,10 @@ RingsManager_States:
 ; ===========================================================================
 ; loc_16F9A:
 RingsManager_Init:
-	addq.b	#2,(Rings_manager_routine).w ; => RingsManager_Main
+	addq.b	#2,(Rings_MngrRtn).w ; => RingsManager_Main
 	bsr.w	RingsManager_Setup
-	movea.l	(Ring_start_addr_ROM).w,a1
-	lea	(Ring_Positions).w,a2
+	movea.l	(Rings_StartROM).w,a1
+	lea	(Rings_PosTable).w,a2
 	move.w	($FFFFF700).w,d4
 	subq.w	#8,d4
 	bhi.s	loc_16FB6
@@ -10176,8 +10170,8 @@ loc_16FB2:
 loc_16FB6:
 	cmp.w	(a1),d4
 	bhi.s	loc_16FB2
-	move.l	a1,(Ring_start_addr_ROM).w
-	move.w	a2,(Ring_start_addr_RAM).w
+	move.l	a1,(Rings_StartROM).w
+	move.w	a2,(Rings_StartRAM).w
 	addi.w	#$150,d4
 	bra.s	loc_16FCE
 ; ===========================================================================
@@ -10188,12 +10182,12 @@ loc_16FCA:
 loc_16FCE:
 	cmp.w	(a1),d4
 	bhi.s	loc_16FCA
-	move.l	a1,(Ring_end_addr_ROM).w
+	move.l	a1,(Rings_EndROM).w
 	rts
 ; ===========================================================================
 ; loc_16FDE:
 RingsManager_Main:
-	lea	(Ring_consumption_table).w,a2
+	lea	(Rings_CllctTbl).w,a2
 	move.w	(a2)+,d1
 	subq.w	#1,d1
 	bcs.s	loc_17014
@@ -10210,14 +10204,14 @@ loc_16FE8:
 	bne.s	loc_17010
 	move.w	#-1,(a1)
 	move.w	#0,-2(a2)
-	subq.w	#1,(Ring_consumption_table).w
+	subq.w	#1,(Rings_CllctTbl).w
 
 loc_17010:
 	dbf	d1,loc_16FE8
 
 loc_17014:
-	movea.l	(Ring_start_addr_ROM).w,a1
-	movea.w	(Ring_start_addr_RAM).w,a2
+	movea.l	(Rings_StartROM).w,a1
+	movea.w	(Rings_StartRAM).w,a2
 	move.w	($FFFFF700).w,d4
 	subq.w	#8,d4
 	bhi.s	loc_17028
@@ -10242,9 +10236,9 @@ loc_17030:
 loc_17032:
 	cmp.w	-4(a1),d4
 	bls.s	loc_17030
-	move.l	a1,(Ring_start_addr_ROM).w
-	move.w	a2,(Ring_start_addr_RAM).w
-	movea.l	(Ring_end_addr_ROM).w,a2
+	move.l	a1,(Rings_StartROM).w
+	move.w	a2,(Rings_StartRAM).w
+	movea.l	(Rings_EndROM).w,a2
 	addi.w	#$150,d4
 	bra.s	loc_1704A
 ; ===========================================================================
@@ -10264,19 +10258,19 @@ loc_17052:
 loc_17054:
 	cmp.w	-4(a2),d4
 	bls.s	loc_17052
-	move.l	a2,(Ring_end_addr_ROM).w
+	move.l	a2,(Rings_EndROM).w
 	rts
 
 ; ===========================================================================
 
 Touch_Rings:
-	movea.l	(Ring_start_addr_ROM).w,a1
-	movea.l	(Ring_end_addr_ROM).w,a2
+	movea.l	(Rings_StartROM).w,a1
+	movea.l	(Rings_EndROM).w,a2
 
 loc_170D0:
 	cmpa.l	a1,a2
 	beq.w	return_17166
-	movea.w	(Ring_start_addr_RAM).w,a4
+	movea.w	(Rings_StartRAM).w,a4
 	cmpi.w	#$5A,$30(a0)
 	bcc.w	return_17166
 	tst.b	($FFFFFE2C).w	; does Sonic have a lightning shield?
@@ -10347,13 +10341,13 @@ loc_17148:
 loc_17148_cont:
 	move.w	#$604,(a4)
 	bsr.s	loc_17168
-	lea	(Ring_consumption_table+2).w,a3
+	lea	(Rings_CllctTbl+2).w,a3
 
 loc_17152:
 	tst.w	(a3)+
 	bne.s	loc_17152
 	move.w	a4,-(a3)
-	addq.w	#1,(Ring_consumption_table).w
+	addq.w	#1,(Rings_CllctTbl).w
 
 loc_1715C:
 	addq.w	#4,a1
@@ -10366,7 +10360,7 @@ return_17166:
 ; ===========================================================================
 
 loc_17168:
-	subq.w	#1,(Perfect_rings_left).w
+	subq.w	#1,(Rings_Left).w
 	bra.w	CollectRing
 ; ===========================================================================
 
@@ -10388,15 +10382,15 @@ AttractRing_NoFreeSlot:
 ; ===========================================================================
 
 BuildRings:
-	movea.l	(Ring_start_addr_ROM).w,a0
-	move.l	(Ring_end_addr_ROM).w,d7
+	movea.l	(Rings_StartROM).w,a0
+	move.l	(Rings_EndROM).w,d7
 	sub.l	a0,d7
 	bne.s	loc_17186
 	rts
 ; ===========================================================================
 
 loc_17186:
-	movea.w	(Ring_start_addr_RAM).w,a4
+	movea.w	(Rings_StartRAM).w,a4
 	lea	($FFFFF700).w,a3
 
 loc_1718A:
@@ -10451,16 +10445,16 @@ loc_171EC:
 ; ===========================================================================
 
 RingsManager_Setup:
-	lea	(Ring_Positions).w,a1
+	lea	(Rings_PosTable).w,a1
 	moveq	#0,d0
-	move.w	#Rings_Space/4-1,d1
+	move.w	#(Rings_Max+1)*2/4-1,d1
 
 loc_172AE:				; CODE XREF: h+33Cj
 	move.l	d0,(a1)+
 	dbf	d1,loc_172AE
 
 	; d0 = 0
-	lea	(Ring_consumption_table).w,a1
+	lea	(Rings_CllctTbl).w,a1
 	move.w	#$1F,d1
 RMBack1:
 	move.l	d0,(a1)+
@@ -10474,10 +10468,10 @@ RMBack1:
 	lea	(RingPos_Index).l,a1
 	move.w	(a1,d0.w),d0
 	lea	(a1,d0.w),a1
-	move.l	a1,(Ring_start_addr_ROM).w
+	move.l	a1,(Rings_StartROM).w
 	addq.w	#4,a1
 	moveq	#0,d5
-	move.w	#(Max_Rings-1),d0	
+	move.w	#(Rings_Max-1),d0
 	
 RMBack2:
 	tst.l	(a1)+
@@ -10485,7 +10479,7 @@ RMBack2:
 	addq.w	#1,d5
 	dbf	d0,RMBack2
 RM2:
-	move.w	d5,(Perfect_rings_left).w
+	move.w	d5,(Rings_Left).w
 	rts
 
 ; ===========================================================================
@@ -10916,7 +10910,7 @@ Obj0D_SonicRun:				; XREF: Obj0D_Index
 		btst	#1,($FFFFD022).w
 		bne.s	loc_EC70
 		move.b	#1,($FFFFF7CC).w ; lock	controls
-		move.w	#$800,($FFFFF602).w ; make Sonic run to	the right
+		move.w	#$800,(JPad_P1HeldLogic).w ; make Sonic run to	the right
 
 loc_EC70:
 		tst.b	($FFFFD000).w
@@ -12222,7 +12216,7 @@ Obj01_Main:				; XREF: Obj01_Index
 Obj01_Control:				; XREF: Obj01_Index
 		tst.w	($FFFFFFFA).w	; is debug cheat enabled?
 		beq.s	loc_12C58	; if not, branch
-		btst	#4,($FFFFF605).w ; is button C pressed?
+		btst	#4,(JPad_P1Press).w ; is button C pressed?
 		beq.s	loc_12C58	; if not, branch
 		move.w	#1,($FFFFFE08).w ; change Sonic	into a ring/item
 		clr.b	($FFFFF7CC).w
@@ -12232,7 +12226,7 @@ Obj01_Control:				; XREF: Obj01_Index
 loc_12C58:
 		tst.b	($FFFFF7CC).w	; are controls locked?
 		bne.s	loc_12C64	; if yes, branch
-		move.w	($FFFFF604).w,($FFFFF602).w ; enable joypad control
+		move.w	(JPad_P1Held).w,(JPad_P1HeldLogic).w ; enable joypad control
 
 loc_12C64:
 		btst	#0,($FFFFF7C8).w ; are controls	locked?
@@ -12333,7 +12327,7 @@ Obj01_ExitChk:
 
 Sonic_RecordPos:			; XREF: loc_12C7E; Obj01_Hurt; Obj01_Death
 		move.w	($FFFFF7A8).w,d0
-		lea	($FFFFCB00).w,a1
+		lea	(Plyr_PrvPosBffr).w,a1
 		lea	(a1,d0.w),a1
 		move.w	Obj_XPosition(a0),(a1)+
 		move.w	Obj_YPosition(a0),(a1)+
@@ -12471,12 +12465,12 @@ Sonic_Move:				; XREF: Obj01_MdNormal
 		bne.w	loc_12FEE
 		tst.w	Plyr_CtrlLock(a0)
 		bne.w	Obj01_ResetScr
-		btst	#2,($FFFFF602).w ; is left being pressed?
+		btst	#2,(JPad_P1HeldLogic).w ; is left being pressed?
 		beq.s	Obj01_NotLeft	; if not, branch
 		bsr.w	Sonic_MoveLeft
 
 Obj01_NotLeft:
-		btst	#3,($FFFFF602).w ; is right being pressed?
+		btst	#3,(JPad_P1HeldLogic).w ; is right being pressed?
 		beq.s	Obj01_NotRight	; if not, branch
 		bsr.w	Sonic_MoveRight
 
@@ -12537,7 +12531,7 @@ loc_12F70:
 ; ===========================================================================
 
 Sonic_LookUp:
-		btst	#0,($FFFFF602).w ; is up being pressed?
+		btst	#0,(JPad_P1HeldLogic).w ; is up being pressed?
 		beq.s	Sonic_Duck	; if not, branch
 		move.b	#7,$1C(a0)	; use "looking up" animation
 		addq.b	#1,($FFFFC903).w
@@ -12551,7 +12545,7 @@ Sonic_LookUp:
 ; ===========================================================================
 
 Sonic_Duck:
-		btst	#1,($FFFFF602).w ; is down being pressed?
+		btst	#1,(JPad_P1HeldLogic).w ; is down being pressed?
 		beq.s	Obj01_ResetScr	; if not, branch
 		move.b	#8,$1C(a0)	; use "ducking"	animation
 		addq.b	#1,($FFFFC903).w
@@ -12577,7 +12571,7 @@ loc_12FBE:
 		subq.w	#2,($FFFFF73E).w ; move	screen back to default
 
 loc_12FC2:
-		move.b	($FFFFF602).w,d0
+		move.b	(JPad_P1HeldLogic).w,d0
 		andi.b	#$C,d0		; is left/right	pressed?
 		bne.s	loc_12FEE	; if yes, branch
 		move.w	Obj_Inertia(a0),d0
@@ -12786,12 +12780,12 @@ Sonic_RollSpeed:			; XREF: Obj01_MdRoll
 		bne.w	loc_131CC
 		tst.w	Plyr_CtrlLock(a0)
 		bne.s	loc_13188
-		btst	#2,($FFFFF602).w ; is left being pressed?
+		btst	#2,(JPad_P1HeldLogic).w ; is left being pressed?
 		beq.s	loc_1317C	; if not, branch
 		bsr.w	Sonic_RollLeft
 
 loc_1317C:
-		btst	#3,($FFFFF602).w ; is right being pressed?
+		btst	#3,(JPad_P1HeldLogic).w ; is right being pressed?
 		beq.s	loc_13188	; if not, branch
 		bsr.w	Sonic_RollRight
 
@@ -12915,7 +12909,7 @@ Sonic_ChgJumpDir:		; XREF: Obj01_MdJump; Obj01_MdJump2
 		move.w	($FFFFF762).w,d5
 		asl.w	#1,d5
 		move.w	Obj_XVelocity(a0),d0	
-		btst	#2,($FFFFF602).w; is left being pressed?	
+		btst	#2,(JPad_P1HeldLogic).w; is left being pressed?	
 		beq.s	loc_13278; if not, branch	
 		bset	#0,Obj_Status(a0)	
 		sub.w	d5,d0	
@@ -12929,7 +12923,7 @@ Sonic_ChgJumpDir:		; XREF: Obj01_MdJump; Obj01_MdJump2
 		move.w	d1,d0
 
 loc_13278:
-		btst	#3,($FFFFF602).w; is right being pressed?	
+		btst	#3,(JPad_P1HeldLogic).w; is right being pressed?	
 		beq.s	Obj01_JumpMove; if not, branch	
 		bclr	#0,Obj_Status(a0)	
 		add.w	d5,d0	
@@ -13058,9 +13052,9 @@ Sonic_Roll:				; XREF: Obj01_MdNormal
 		neg.w	d0
 
 loc_13392:
-        btst    #1,($FFFFF602).w    ; is down being pressed?
+        btst    #1,(JPad_P1HeldLogic).w    ; is down being pressed?
         beq.s    Obj01_NoRoll    ; if not, branch
-        move.b    ($FFFFF602).w,d0
+        move.b    (JPad_P1HeldLogic).w,d0
         andi.b    #$C,d0    ; is left/right being pressed?
         bne.s    Obj01_NoRoll    ; if yes, branch
         move.w    Obj_Inertia(a0),d0
@@ -13106,7 +13100,7 @@ locret_133E8:
 
 
 Sonic_Jump:				; XREF: Obj01_MdNormal; Obj01_MdRoll
-		move.b	($FFFFF603).w,d0
+		move.b	(JPad_P1PressLogic).w,d0
 		andi.b	#$70,d0		; is A,	B or C pressed?
 		beq.w	locret_1348E	; if not, branch
 		moveq	#0,d0
@@ -13172,7 +13166,7 @@ Sonic_JumpHeight:			; XREF: Obj01_MdJump; Obj01_MdJump2
 loc_134AE:
 		cmp.w	Obj_YVelocity(a0),d1
 		ble.s	locret_134C2
-		move.b	($FFFFF602).w,d0
+		move.b	(JPad_P1HeldLogic).w,d0
 		andi.b	#$70,d0		; is A,	B or C pressed?
 		bne.s	locret_134C2	; if yes, branch
 		move.w	d1,Obj_YVelocity(a0)
@@ -13195,7 +13189,7 @@ Sonic_SpinDash:
 		bne.s	loc2_1AC8E		; if set, branch
 		cmpi.b	#8,$1C(a0)		; is anim duck
 		bne.s	locret2_1AC8C		; if not, return
-		move.b	($FFFFF603).w,d0	; read controller
+		move.b	(JPad_P1PressLogic).w,d0	; read controller
 		andi.b	#$70,d0			; pressing A/B/C ?
 		beq.w	locret2_1AC8C		; if not, return
 		move.b	#$1F,$1C(a0)		; set Spin Dash anim (9 in s2)
@@ -13217,7 +13211,7 @@ locret2_1AC8C:
 
 loc2_1AC8E:
 		move.b	#$1F,$1C(a0)
-		move.b	($FFFFF602).w,d0	; read controller
+		move.b	(JPad_P1HeldLogic).w,d0	; read controller
 		btst	#1,d0			; check down button
 		bne.w	loc2_1AD30		; if set, branch
 		move.b	#$E,$16(a0)		; $16(a0) is height/2
@@ -13286,7 +13280,7 @@ loc2_1AD30:				; If still charging the dash...
 		move.w	#0,$3A(a0)	; set charge count to 0
 
 loc2_1AD48:
-		move.b	($FFFFF603).w,d0	; read controller
+		move.b	(JPad_P1PressLogic).w,d0	; read controller
 		andi.b	#$70,d0			; pressing A/B/C?
 		beq.w	loc2_1AD78		; if not, branch
 		move.w	#$1F00,$1C(a0)		; reset spdsh animation
@@ -14463,7 +14457,7 @@ Obj38_StarTrail2:
 		move.b	d1,$30(a0)
 
 Obj38_StarTrail2a:
-		lea	($FFFFCB00).w,a1
+		lea	(Plyr_PrvPosBffr).w,a1
 		lea	(a1,d0.w),a1
 		move.w	(a1)+,8(a0)
 		move.w	(a1)+,$C(a0)
@@ -16439,7 +16433,7 @@ Obj3E_Switched:				; XREF: Obj3E_Index
 		clr.b	($FFFFFE1E).w	; stop time counter
 		clr.b	($FFFFF7AA).w	; lock screen position
 		move.b	#1,($FFFFF7CC).w ; lock	controls
-		move.w	#$800,($FFFFF602).w ; make Sonic run to	the right
+		move.w	#$800,(JPad_P1HeldLogic).w ; make Sonic run to	the right
 		clr.b	$25(a0)
 		bclr	#3,($FFFFD022).w
 		bset	#1,($FFFFD022).w
@@ -16476,7 +16470,7 @@ loc_1ACA0:
 Obj3E_MakeAnimal:
 		move.b	#2,($FFFFF7A7).w
 		move.b	#$C,$24(a0)	; replace explosions with animals
-		move.b	#6,$1A(a0)
+		move.b	#4,$1A(a0)
 		move.w	#$96,$1E(a0)
 		addi.w	#$20,$C(a0)
 		moveq	#7,d6
@@ -16581,7 +16575,7 @@ TouchResponse:				; XREF: Obj01
 Touch_NoDuck:
 		move.w	#$10,d4
 		add.w	d5,d5
-		lea	($FFFFD800).w,a1 ; begin checking the object RAM
+		lea	(ObMem_Dynamic).w,a1 ; begin checking the object RAM
 		move.w	#$5F,d6
 
 Touch_Loop:
@@ -17969,10 +17963,10 @@ Debug_Skip:				; XREF: Debug_Index
 Debug_Control:
 		moveq	#0,d4
 		move.w	#1,d1
-		move.b	($FFFFF605).w,d4
+		move.b	(JPad_P1Press).w,d4
 		andi.w	#$F,d4		; is up/down/left/right	pressed?
 		bne.s	loc_1D018	; if yes, branch
-		move.b	($FFFFF604).w,d0
+		move.b	(JPad_P1Held).w,d0
 		andi.w	#$F,d0
 		bne.s	loc_1D000
 		move.b	#$C,($FFFFFE0A).w
@@ -17989,7 +17983,7 @@ loc_1D000:
 		move.b	#-1,($FFFFFE0B).w
 
 loc_1D018:
-		move.b	($FFFFF604).w,d4
+		move.b	(JPad_P1Held).w,d4
 
 loc_1D01C:
 		moveq	#0,d1
@@ -18030,9 +18024,9 @@ loc_1D066:
 		move.l	d3,8(a0)
 
 Debug_BackItem:
-		btst	#6,($FFFFF604).w ; is button A pressed?
+		btst	#6,(JPad_P1Held).w ; is button A pressed?
 		beq.s	Debug_MakeItem	; if not, branch
-		btst	#5,($FFFFF605).w ; is button C pressed?
+		btst	#5,(JPad_P1Press).w ; is button C pressed?
 		beq.s	Debug_NextItem	; if not, branch
 		subq.b	#1,($FFFFFE06).w ; go back 1 item
 		bcc.s	Debug_NoLoop
@@ -18041,7 +18035,7 @@ Debug_BackItem:
 ; ===========================================================================
 
 Debug_NextItem:
-		btst	#6,($FFFFF605).w ; is button A pressed?
+		btst	#6,(JPad_P1Press).w ; is button A pressed?
 		beq.s	Debug_MakeItem	; if not, branch
 		addq.b	#1,($FFFFFE06).w ; go forwards 1 item
 		cmp.b	($FFFFFE06).w,d6
@@ -18053,7 +18047,7 @@ Debug_NoLoop:
 ; ===========================================================================
 
 Debug_MakeItem:
-		btst	#5,($FFFFF605).w ; is button C pressed?
+		btst	#5,(JPad_P1Press).w ; is button C pressed?
 		beq.s	Debug_Exit	; if not, branch
 		jsr	SingleObjLoad
 		bne.s	Debug_Exit
@@ -18072,7 +18066,7 @@ Debug_MakeItem:
 ; ===========================================================================
 
 Debug_Exit:
-		btst	#4,($FFFFF605).w ; is button B pressed?
+		btst	#4,(JPad_P1Press).w ; is button B pressed?
 		beq.s	Debug_DoNothing	; if not, branch
 		moveq	#0,d0
 		move.w	d0,($FFFFFE08).w ; deactivate debug mode
@@ -18182,6 +18176,10 @@ Nem_Bumper:	incbin	"Objects/Bumper/Tiles.nem"	; SYZ bumper
 		even
 Nem_LzSwitch:	incbin	"Objects/Switch/Tiles.nem"	; LZ/SYZ/SBZ switch
 		even
+
+CollapsePltfm_Tiles:
+		incbin	"Objects/Collapsing Platform/Tiles.nem"
+		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - enemies
 ; ---------------------------------------------------------------------------
@@ -18269,17 +18267,11 @@ Col_TZ_2:	incbin	"Levels/Test Zone/Path 2.col"
 ; Level	layout index
 ; ---------------------------------------------------------------------------
 Level_Index:
-		dc.l Level_TZ1, Level_TZ1BG, byte_68D70
-		dc.l Level_TZ2, Level_TZ2BG, byte_68E3C
+		dc.l Level_TZ1, Level_TZ2
 
 Level_TZ1:	incbin	"Levels/Test Zone/Layout 1.lyt"
 		even
-byte_68D70:	dc.b 0,	0, 0, 0
 Level_TZ2:	incbin	"Levels/Test Zone/Layout 2.lyt"
-		even
-byte_68E3C:	dc.b 0,	0, 0, 0
-Level_TZ1BG:	incbin	"Levels/Test Zone/Background 1.lyt"
-Level_TZ2BG:	incbin	"Levels/Test Zone/Background 2.lyt"
 		even
 
 ; ---------------------------------------------------------------------------
@@ -18541,7 +18533,7 @@ locret_71CAA:
 loc_71CAC:
 		subi.b	#$88,d0
 		move.b	byte_71CC4(pc,d0.w),d0
-		move.b	d0,($A000EA).l
+		move.b	d0,($A000C0).l
 		move.b	#$83,($A01FFF).l
 		rts	
 ; End of function sub_71C4E
@@ -18951,10 +18943,10 @@ PlayPCM_Loop:
 		dbf	d0,*				; Decrement d0; jump to itself if not 0. (for pitch control, avoids playing the sample too fast)  
 		sub.l	#1,d3				; Subtract 1 from the PCM sample size 
 		beq.s	return_PlayPCM			; If d3 = 0, we finished playing the PCM sample, so stop playing, leave this loop, and unfreeze the 68K 
-		lea	($FFFFF604).w,a0		; address where JoyPad states are written 
+		lea	(JPad_P1Held).w,a0		; address where JoyPad states are written 
 		lea	(IO_Data1).l,a1			; address where JoyPad states are read from 
 		jsr	(Joypad_Read).w			; Read only the first joypad port. It's important that we do NOT do the two ports, we don't have the cycles for that 
-		btst	#7,($FFFFF604).w		; Check for Start button 
+		btst	#7,(JPad_P1Held).w		; Check for Start button 
 		bne.s	return_PlayPCM			; If start is pressed, stop playing, leave this loop, and unfreeze the 68K 
 		bra.s	PlayPCM_Loop			; Otherwise, continue playing PCM sample 
 return_PlayPCM: 
@@ -20667,12 +20659,9 @@ loc_72E64:				; XREF: loc_72A64
 		move.b	#$F,d1
 		bra.w	sub_7272E
 ; ===========================================================================
-Kos_Z80:
-		incbin	"Audio/Driver Part 1.kos"
-		dc.w ((SegaPCM&$FF)<<8)+((SegaPCM&$FF00)>>8)
-		dc.b $21
-		dc.w (((EndOfRom-SegaPCM)&$FF)<<8)+(((EndOfRom-SegaPCM)&$FF00)>>8)
-		incbin	"Audio/Driver Part 2.kos"
+Z80_SoundDriver:
+		incbin	"Audio/Sound Driver.z80"
+Z80_DriverEnd:
 		even
 Music81:
 		include	"Audio/Music - GHZ.asm"
