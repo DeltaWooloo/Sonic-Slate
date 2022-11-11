@@ -108,11 +108,25 @@ Level_BottomBound       rs.w 1
 Camera_XPxScrolled  rs.w 1
 Camera_YPxScrolled  rs.w 1
 Camera_YPosRelative rs.w 1
-    rs.w    1
+    rs.b    2
 Level_DLERoutine    rs.b 1
     rs.b    1
 Camera_ScrollDsbl   rs.b 1
     rs.b    5
+PlaneA_XRedrawFlag  rs.b 1
+PlaneA_YRedrawFlag  rs.b 1
+PlaneB_XRedrawFlag1 rs.b 1
+PlaneB_YRedrawFlag1 rs.b 1
+PlaneB_XRedrawFlag2 rs.b 1
+PlaneB_YRedrawFlag2 rs.b 1
+PlaneB_XRedrawFlag3 rs.b 1
+PlaneB_YRedrawFlag3 rs.b 1
+    rs.b    2
+PlaneA_RedrawFlags  rs.b 1
+PlaneB_RedrawFlags1 rs.b 1
+PlaneB_RedrawFlags2 rs.b 1
+PlaneB_RedrawFlags3 rs.b 1
+    rs.b    8
 
 Camera_X_pos_last = $FFFFFE2A
 Camera_Y_pos_last = $FFFFF76E

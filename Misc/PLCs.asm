@@ -24,13 +24,9 @@ PLC_Main:	dc.w 4
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - standard block 2
 ; ---------------------------------------------------------------------------
-PLC_Main2:	dc.w 2
+PLC_Main2:	dc.w 0
 		dc.l Nem_Monitors	; monitors
 		dc.w $D000
-		dc.l Nem_Shield		; shield
-		dc.w $A820
-		dc.l Nem_Stars		; invincibility	stars
-		dc.w $AB80
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - explosion
 ; ---------------------------------------------------------------------------

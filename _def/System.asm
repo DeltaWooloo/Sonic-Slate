@@ -131,7 +131,7 @@ VReg_DMASrcHi   equ $9700
 ; --------------------------------------------------
 VDPCommand  macro   comm, addr, dest
     if narg>2
-        move.l  #((addr&$3FFF)<<16)|((addr&$C000)>>14)+comm,dest
+        move.l  #((addr&$3FFF)<<16)|((addr&$C000)>>14)+comm,\dest
     else
         move.l  #((addr&$3FFF)<<16)|((addr&$C000)>>14)+comm,(VDP_Control).l
     endif

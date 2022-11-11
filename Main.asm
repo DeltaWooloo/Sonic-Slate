@@ -7393,21 +7393,14 @@ PowerUp_Shoe:
 
 PowerUp_Shield:
 		move.b	#1,($FFFFFE2C).w ; give	Sonic a	shield
-		move.b	#$38,($FFFFD180).w ; load shield object	($38)
+		move.b	#$38,(ObMem_Shield).w ; load shield object	($38)
 		move.w	#$AF,d0
 		jmp	(PlaySound).l	; play shield sound
 
 PowerUp_Invinc:
 		move.b	#1,($FFFFFE2D).w ; make	Sonic invincible
 		move.w	#$4B0,($FFFFD032).w ; time limit for the power-up
-		move.b	#$38,($FFFFD200).w ; load stars	object ($3801)
-		move.b	#1,($FFFFD21C).w
-		move.b	#$38,($FFFFD240).w ; load stars	object ($3802)
-		move.b	#2,($FFFFD25C).w
-		move.b	#$38,($FFFFD280).w ; load stars	object ($3803)
-		move.b	#3,($FFFFD29C).w
-		move.b	#$38,($FFFFD2C0).w ; load stars	object ($3804)
-		move.b	#4,($FFFFD2DC).w
+		move.b	#ObID_InvcStars,(ObMem_InvcStars).w
 		tst.b	($FFFFF7AA).w	; is boss mode on?
 		bne.s	Obj2E_NoMusic	; if yes, branch
 		move.w	#$87,d0
@@ -14378,7 +14371,6 @@ Obj38:					; XREF: Obj_Index
 ; ===========================================================================
 Obj38_Index:	dc.w Obj38_Main-Obj38_Index
 		dc.w Obj38_Shield-Obj38_Index
-		dc.w Obj38_Stars-Obj38_Index
 ; ===========================================================================
 
 Obj38_Main:				; XREF: Obj38_Index
@@ -14387,17 +14379,6 @@ Obj38_Main:				; XREF: Obj38_Index
 		move.b	#4,1(a0)
 		move.w	#$80,Obj_Priority(a0)
 		move.b	#$10,Obj_SprWidth(a0)
-		tst.b	$1C(a0)		; is object a shield?
-		bne.s	Obj38_DoStars	; if not, branch
-		move.w	#$541,2(a0)	; shield specific code
-		rts	
-; ===========================================================================
-
-Obj38_DoStars:
-		addq.b	#2,$24(a0)	; stars	specific code
-		move.w	#$55C,2(a0)
-		rts	
-; ===========================================================================
 
 Obj38_Shield:				; XREF: Obj38_Index
 		tst.b	($FFFFFE2D).w	; does Sonic have invincibility?
@@ -14418,58 +14399,6 @@ Obj38_RmvShield:
 
 Obj38_Delete:
 		jmp	DeleteObject
-; ===========================================================================
-
-Obj38_Stars:				; XREF: Obj38_Index
-		tst.b	($FFFFFE2D).w	; does Sonic have invincibility?
-		beq.s	Obj38_Delete2	; if not, branch
-		move.w	($FFFFF7A8).w,d0
-		move.b	$1C(a0),d1
-		subq.b	#1,d1
-		bra.s	Obj38_StarTrail
-; ===========================================================================
-		lsl.b	#4,d1
-		addq.b	#4,d1
-		sub.b	d1,d0
-		move.b	$30(a0),d1
-		sub.b	d1,d0
-		addq.b	#4,d1
-		andi.b	#$F,d1
-		move.b	d1,$30(a0)
-		bra.s	Obj38_StarTrail2a
-; ===========================================================================
-
-Obj38_StarTrail:			; XREF: Obj38_Stars
-		lsl.b	#3,d1
-		move.b	d1,d2
-		add.b	d1,d1
-		add.b	d2,d1
-		addq.b	#4,d1
-		sub.b	d1,d0
-		move.b	$30(a0),d1
-		sub.b	d1,d0
-		addq.b	#4,d1
-		cmpi.b	#$18,d1
-		bcs.s	Obj38_StarTrail2
-		moveq	#0,d1
-
-Obj38_StarTrail2:
-		move.b	d1,$30(a0)
-
-Obj38_StarTrail2a:
-		lea	(Plyr_PrvPosBffr).w,a1
-		lea	(a1,d0.w),a1
-		move.w	(a1)+,8(a0)
-		move.w	(a1)+,$C(a0)
-		move.b	($FFFFD022).w,$22(a0)
-		lea	(Ani_obj38).l,a1
-		jsr	AnimateSprite
-		jmp	DisplaySprite
-; ===========================================================================
-
-Obj38_Delete2:				; XREF: Obj38_Stars
-		jmp	DeleteObject
-; ===========================================================================
 
 Ani_obj38:
 	include "Objects/Shields/Normal Shield/Animations.asm"
@@ -14479,6 +14408,8 @@ Ani_obj38:
 ; ---------------------------------------------------------------------------
 Map_obj38:
 	include "Objects/Shields/Normal Shield/Mappings.asm"
+
+	include	"Objects/Invincibility Stars/Script.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -18150,13 +18081,6 @@ SonicDynPLC:
 Art_Sonic:	incbin	"Objects/Players/Sonic/Tiles.unc"	; Sonic
 		even
 Art_Dust	incbin	"Objects/Dust and Splash/Tiles.unc"
-		even
-; ---------------------------------------------------------------------------
-; Compressed graphics - various
-; ---------------------------------------------------------------------------
-Nem_Shield:	incbin	"Objects/Shields/Normal Shield/Tiles.nem"	; shield
-		even
-Nem_Stars:	incbin	"Objects/Invincibility Stars/Tiles.nem"	; invincibility stars
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - GHZ stuff

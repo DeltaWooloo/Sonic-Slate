@@ -92,6 +92,7 @@ ObID_FireShield rs.b 1
 ObID_ElecShield rs.b 1
 ObID_ElecSparks rs.b 1
 ObID_BblShield  rs.b 1
+ObID_InvcStars  rs.b 1
 
 ; Invisible stuff
 ObID_InvisBlock rs.b 1
