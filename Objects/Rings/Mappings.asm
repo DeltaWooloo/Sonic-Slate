@@ -1,24 +1,17 @@
-; ---------------------------------------------------------------------------
-; Sprite mappings - rings
-; ---------------------------------------------------------------------------
-		dc.w byte_9FA2-Map_obj25, byte_9FA8-Map_obj25
-		dc.w byte_9FAE-Map_obj25, byte_9FB4-Map_obj25
-		dc.w byte_9FBA-Map_obj25, byte_9FC0-Map_obj25
-		dc.w byte_9FC6-Map_obj25, byte_9FCC-Map_obj25
-byte_9FA2:	dc.b 1
-		dc.b $F8, 5, 0,	0, $F8
-byte_9FA8:	dc.b 1
-		dc.b $F8, 5, 0,	4, $F8
-byte_9FAE:	dc.b 1
-		dc.b $F8, 1, 0,	8, $FC
-byte_9FB4:	dc.b 1
-		dc.b $F8, 5, 8,	4, $F8
-byte_9FBA:	dc.b 1
-		dc.b $F8, 5, 0,	$A, $F8
-byte_9FC0:	dc.b 1
-		dc.b $F8, 5, $18, $A, $F8
-byte_9FC6:	dc.b 1
-		dc.b $F8, 5, 8,	$A, $F8
-byte_9FCC:	dc.b 1
-		dc.b $F8, 5, $10, $A, $F8
-		even
+Map_0851:
+Map_0851_0: 	dc.w Map_0851_A-Map_0851
+Map_0851_2: 	dc.w Map_0851_10-Map_0851
+Map_0851_4: 	dc.w Map_0851_16-Map_0851
+Map_0851_6: 	dc.w Map_0851_1C-Map_0851
+Map_0851_8: 	dc.w Map_0851_22-Map_0851
+Map_0851_A: 	dc.b $1
+	dc.b $F8, $5, $0, $0, $F8
+Map_0851_10: 	dc.b $1
+	dc.b $F8, $5, $0, $4, $F8
+Map_0851_16: 	dc.b $1
+	dc.b $F8, $5, $10, $4, $F8
+Map_0851_1C: 	dc.b $1
+	dc.b $F8, $5, $8, $4, $F8
+Map_0851_22: 	dc.b $1
+	dc.b $F8, $5, $18, $4, $F8
+	even

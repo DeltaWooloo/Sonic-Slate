@@ -2,5 +2,5 @@
 ; Animation script - ring
 ; ---------------------------------------------------------------------------
 		dc.w byte_9F8C-Ani_obj25
-byte_9F8C:	dc.b 5,	4, 5, 6, 7, $FC
+byte_9F8C:	dc.b 5,	1, 2, 3, 4, $FC
 		even

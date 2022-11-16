@@ -12,7 +12,7 @@ align macro
 	endm
 	
 StartOfRom:
-Vectors:	dc.l $FFFE00, EntryPoint, BusError, AddressError
+Vectors:	dc.l Sys_StackPtr&$FFFFFF, EntryPoint, BusError, AddressError
 		dc.l IllegalInstr, ZeroDivide, ChkInstr, TrapvInstr
 		dc.l PrivilegeViol, Trace, Line1010Emu,	Line1111Emu
 		dc.l ErrorExcept, ErrorExcept, ErrorExcept, ErrorExcept
@@ -123,7 +123,7 @@ PSGInitLoop:
 PortC_Ok:
 		bra.s	GameProgram
 ; ===========================================================================
-SetupValues:	dc.w $8000		; XREF: PortA_Ok
+SetupValues:	dc.w VReg_Mode1		; XREF: PortA_Ok
 		dc.w $3FFF
 		dc.w VReg_Next
 
@@ -3511,43 +3511,28 @@ Osc_Data2:	dc.w 2,	$10		; XREF: OscillateNumDo
 ChangeRingFrame:			; XREF: Level
 		cmp.b	#6,($FFFFD000+Obj_Routine).w
 		bge.s	locret_4272
-		subq.b	#1,($FFFFFEC0).w
-		bpl.s	loc_421C
-		move.b	#$B,($FFFFFEC0).w
-		subq.b	#1,($FFFFFEC1).w
-		andi.b	#7,($FFFFFEC1).w
-
-loc_421C:
 		subq.b	#1,($FFFFFEC2).w
-		bpl.s	loc_4232
-		move.b	#7,($FFFFFEC2).w
+		bpl.s	locret_4272
+		move.b	#3,($FFFFFEC2).w
 		addq.b	#1,($FFFFFEC3).w
-		andi.b	#3,($FFFFFEC3).w
-
-loc_4232:
-		subq.b	#1,($FFFFFEC4).w
-		bpl.s	loc_4250
-		move.b	#7,($FFFFFEC4).w
-		addq.b	#1,($FFFFFEC5).w
-		cmpi.b	#6,($FFFFFEC5).w
-		bcs.s	loc_4250
-		move.b	#0,($FFFFFEC5).w
-
-loc_4250:
-		tst.b	($FFFFFEC6).w
-		beq.s	locret_4272
+		andi.b	#7,($FFFFFEC3).w
 		moveq	#0,d0
-		move.b	($FFFFFEC6).w,d0
-		add.w	($FFFFFEC8).w,d0
-		move.w	d0,($FFFFFEC8).w
-		rol.w	#7,d0
-		andi.w	#3,d0
-		move.b	d0,($FFFFFEC7).w
-		subq.b	#1,($FFFFFEC6).w
+		moveq	#4-1,d1
+		move.b	($FFFFFEC3).w,d0
+		asl.w	#7,d0
+		lea	(Ring_MainTiles).l,a1
+		lea	(a1,d0.w),a1
+		lea	(VDP_Data).l,a6
+		VDPCommand	VComm_VRAMWrite, $F640
+		jsr	LoadTiles
 
 locret_4272:
 		rts	
 ; End of function ChangeRingFrame
+
+Ring_MainTiles:
+	incbin	"Objects/Rings/Main Tiles.unc"
+	even
 
 ; ---------------------------------------------------------------------------
 ; End-of-act signpost pattern loading subroutine
@@ -6828,7 +6813,6 @@ Obj25_Main:				; XREF: Obj25_Index
 		move.b	#8,Obj_SprWidth(a0)
 
 Obj25_Animate:				; XREF: Obj25_Index
-		move.b	($FFFFFEC3).w,$1A(a0)
 		move.w	$32(a0),d0
 		bra.w	MarkObjGone
 ; ===========================================================================
@@ -6966,7 +6950,6 @@ Obj37_ResetCounter:			; XREF: Obj37_Loop
 		jsr	(PlaySound_Special).l ;	play ring loss sound
 
 Obj37_Bounce:				; XREF: Obj37_Index
-		move.b	($FFFFFEC7).w,$1A(a0)
 		bsr.w	SpeedToPos
 		addi.w	#$18,$12(a0)
 		tst.b	($FFFFF64C).w		; Does the level have water?
@@ -7060,7 +7043,6 @@ Obj07_sub_2:
 	move.b	#-1,($FFFFFEC6).w
 
 Obj07_sub_3:
-	move.b	($FFFFFEC3).w,$1A(a0)
 	move.w	$32(a0),d0
 	bra.w	DisplaySprite
 ; ===========================================================================
@@ -10404,7 +10386,7 @@ loc_1718A:
 	moveq	#0,d1
 	move.b	-1(a4),d1
 	bne.s	loc_171C8
-	move.b	($FFFFFEC3).w,d1
+	move.b	#0,d1
 
 loc_171C8:
 	add.w	d1,d1
@@ -18118,7 +18100,7 @@ Nem_Hud:	incbin	"Levels/HUD Main Tiles.nem"		; HUD (rings, time, score)
 		even
 Nem_Lives:	incbin	"Levels/Sonic Icon Tiles.nem"	; life counter icon
 		even
-Nem_Ring:	incbin	"Objects/Rings/Tiles.nem"	; rings
+Nem_Ring:	incbin	"Objects/Rings/Sparkle Tiles.nem"	; rings
 		even
 Nem_Monitors:	incbin	"Objects/Monitors/Tiles.nem"	; monitors
 		even

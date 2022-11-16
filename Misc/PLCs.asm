@@ -18,7 +18,7 @@ PLC_Main:	dc.w 4
 		dc.l Nem_Lives		; lives	counter
 		dc.w $FA80
 		dc.l Nem_Ring		; rings
-		dc.w $F640
+		dc.w $F6C0
 		dc.l Nem_Points		; points from enemy
 		dc.w $F2E0
 ; ---------------------------------------------------------------------------
