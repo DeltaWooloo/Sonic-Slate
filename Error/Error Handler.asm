@@ -30,37 +30,37 @@ _eh_default			equ	0 ;_eh_show_sr_usp
 
 ; ---------------------------------------------------------------
 
-BusError:
+Error_Bus:
 	__ErrorMessage "BUS ERROR", _eh_default|_eh_address_error
 
-AddressError:
+Error_Address:
 	__ErrorMessage "ADDRESS ERROR", _eh_default|_eh_address_error
 
-IllegalInstr:
+Error_Illegal:
 	__ErrorMessage "ILLEGAL INSTRUCTION", _eh_default
 
-ZeroDivide:
+Error_Div0:
 	__ErrorMessage "ZERO DIVIDE", _eh_default
 
-ChkInstr:
+Error_CHK:
 	__ErrorMessage "CHK INSTRUCTION", _eh_default
 
-TrapvInstr:
+Error_TRAPV:
 	__ErrorMessage "TRAPV INSTRUCTION", _eh_default
 
-PrivilegeViol:
+Error_PrivelegeVio:
 	__ErrorMessage "PRIVILEGE VIOLATION", _eh_default
 
-Trace:
+Error_TRACE:
 	__ErrorMessage "TRACE", _eh_default
 
-Line1010Emu:
+Error_LineAEmu:
 	__ErrorMessage "LINE 1010 EMULATOR", _eh_default
 
-Line1111Emu:
+Error_LineFEmu:
 	__ErrorMessage "LINE 1111 EMULATOR", _eh_default
 
-ErrorExcept:
+Error_Misc:
 	__ErrorMessage "ERROR EXCEPTION", _eh_default
 
 

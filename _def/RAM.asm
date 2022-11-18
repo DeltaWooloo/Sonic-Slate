@@ -16,7 +16,8 @@ Rings_MngrRtn   rs.w 1
 Rings_CllctTbl  rs.w 1
     rs.b    $1D06
 Level_Layout    rs.l 1
-    rs.b    $5FC
+Level_LayoutBG  rs.l 1
+    rs.b    $5F8
 NemDec_Buffer   rs.b $200
 Sprite_InputTbl rs.b $400
 Block_Mappings  rs.b $1800

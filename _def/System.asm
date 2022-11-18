@@ -13,6 +13,9 @@ SRAM_End    equ $20FFFF
 SRAM_Access equ $A130F1
 Sys_Version equ $A10001
 Sys_TMSS    equ $A14000
+
+Align macros
+        cnop 0,\1
 ; --------------------------------------------------
 
 ; --------------------------------------------------
@@ -92,6 +95,10 @@ VDP_DBAccess    equ $C0001C
 ; --------------------------------------------------
 ; VDP Constants
 ; --------------------------------------------------
+VRAM_Size       equ $10000
+CRAM_Size       equ 64*2
+VSRAM_Size      equ 40*2
+
 VComm_VRAMWrite     equ $40000000
 VComm_VRAMRead      equ $00000000
 VComm_VRAMDMA       equ $40000080
