@@ -7219,6 +7219,11 @@ PowerUp_Invinc:
 		move.b	#1,($FFFFFE2D).w ; make	Sonic invincible
 		move.w	#$4B0,($FFFFD032).w ; time limit for the power-up
 		move.b	#ObID_InvcStars,(ObMem_InvcStars).w
+	VDPCommand	VComm_VRAMWrite, $A820
+	lea	(VDP_Data).l,a6
+	lea	(InvStars_Tiles).l,a1
+	moveq	#33-1,d1
+	jsr	LoadTiles
 		tst.b	($FFFFF7AA).w	; is boss mode on?
 		bne.s	Obj2E_NoMusic	; if yes, branch
 		move.w	#$87,d0
@@ -11659,192 +11664,181 @@ Map_obj64:
 
 ; ===========================================================================
 
-SpinDash_dust:
-Sprite_1DD20:				; DATA XREF: ROM:0001600C?o
-		moveq	#0,d0
-		move.b	$24(a0),d0
-		move	off_1DD2E(pc,d0.w),d1
-		jmp	off_1DD2E(pc,d1.w)
+Obj05:
+        moveq   #0,d0
+        move.b  $24(a0),d0
+        move    Obj05_Index(pc,d0.w),d1
+        jmp Obj05_Index(pc,d1.w)
 ; ===========================================================================
-off_1DD2E:	dc loc_1DD36-off_1DD2E; 0 ; DATA XREF: h+6DBA?o h+6DBC?o ...
-		dc loc_1DD90-off_1DD2E; 1
-		dc loc_1DE46-off_1DD2E; 2
-		dc loc_1DE4A-off_1DD2E; 3
+Obj05_Index:    dc.w    Obj05_Init-Obj05_Index      ; 0
+        dc.w    Obj05_Main-Obj05_Index      ; 2
+        dc.w    Obj05_Delete-Obj05_Index    ; 4
+        dc.w    Obj05_DoSkid-Obj05_Index    ; 6
 ; ===========================================================================
-
-loc_1DD36:				; DATA XREF: h+6DBA?o
-		addq.b	#2,$24(a0)
-		move.l	#MapUnc_1DF5E,4(a0)
-		or.b	#4,1(a0)
-		move.w	#$80,Obj_Priority(a0)
-		move.b	#$10,Obj_SprWidth(a0)
-		move	#$7A0,2(a0)
-		move	#-$3000,$3E(a0)
-		move	#$F400,$3C(a0)
-		cmp	#-$2E40,a0
-		beq.s	loc_1DD8C
-		move.b	#1,$34(a0)
-;		cmp	#2,($FFFFFF70).w
-;		beq.s	loc_1DD8C
-;		move	#$48C,2(a0)
-;		move	#-$4FC0,$3E(a0)
-;		move	#-$6E80,$3C(a0)
-
-loc_1DD8C:				; CODE XREF: h+6DF6?j h+6E04?j
-;		bsr.w	sub_16D6E
-
-loc_1DD90:				; DATA XREF: h+6DBA?o
-		movea.w	$3E(a0),a2
-		moveq	#0,d0
-		move.b	$1C(a0),d0
-		add	d0,d0
-		move	off_1DDA4(pc,d0.w),d1
-		jmp	off_1DDA4(pc,d1.w)
+ 
+Obj05_Init:
+        addq.b  #2,$24(a0)      ; => "Obj05_Main"
+        move.l  #Map_Obj05,4(a0)
+        or.b    #4,1(a0)
+        move.w  #$80,Obj_Priority(a0)
+        move.b  #$10,$19(a0)
+        move    #$7A0,2(a0)
+        move    #$D000,$3E(a0)      ; Sonic's object address ($FFFFD000)
+        move    #$F400,$3C(a0)      ; DMA destination address (VRAM)
+ 
+Obj05_Main:
+        movea.w $3E(a0),a2      ; a2 = Character Object
+        moveq   #0,d0
+        move.b  $1C(a0),d0      ; d0 = AnimID
+        add d0,d0           ; d0 = AnimID*2
+        move    Obj05_Index2(pc,d0.w),d1
+        jmp Obj05_Index2(pc,d1.w)   ; choose routine according to animation number
 ; ===========================================================================
-off_1DDA4:	dc loc_1DE28-off_1DDA4; 0 ; DATA XREF: h+6E30?o h+6E32?o ...
-		dc loc_1DDAC-off_1DDA4; 1
-		dc loc_1DDCC-off_1DDA4; 2
-		dc loc_1DE20-off_1DDA4; 3
+Obj05_Index2:   dc.w    Obj05_Display-Obj05_Index2  ; 0
+        dc.w    Obj05_Splash-Obj05_Index2   ; 1
+        dc.w    Obj05_Dust-Obj05_Index2     ; 2
+        dc.w    Obj05_Display-Obj05_Index2  ; 3
 ; ===========================================================================
-
-loc_1DDAC:				; DATA XREF: h+6E30?o
-		move	(Water_Height).w,$C(a0)
-		tst.b	$1D(a0)
-		bne.s	loc_1DE28
-		move	8(a2),8(a0)
-		move.b	#0,$22(a0)
-		and	#$7FFF,2(a0)
-		bra.s	loc_1DE28
+ 
+Obj05_Splash:
+        move    ($FFFFF646).w,$C(a0)    ; Ypos = Water Level
+        tst.b   $1D(a0)         ; is animation over?
+        bne.s   Obj05_Display       ; if not, branch
+        move    8(a2),8(a0)     ; Xpos = Sonic.Xpos
+        move.b  #0,$22(a0)
+        and #$7FFF,2(a0)
+        bra.s   Obj05_Display
 ; ===========================================================================
-
-loc_1DDCC:				; DATA XREF: h+6E30?o
-;		cmp.b	#$C,$28(a2)
-;		bcs.s	loc_1DE3E
-		cmp.b	#4,$24(a2)
-		bcc.s	loc_1DE3E
-		tst.b	$39(a2)
-		beq.s	loc_1DE3E
-		move	8(a2),8(a0)
-		move	$C(a2),$C(a0)
-		move.b	$22(a2),$22(a0)
-		and.b	#1,$22(a0)
-		tst.b	$34(a0)
-		beq.s	loc_1DE06
-		sub	#4,$C(a0)
-
-loc_1DE06:				; CODE XREF: h+6E8A?j
-		tst.b	$1D(a0)
-		bne.s	loc_1DE28
-		and	#$7FFF,2(a0)
-		tst	2(a2)
-		bpl.s	loc_1DE28
-		or	#-$8000,2(a0)
+ 
+Obj05_Dust:
+        cmp.b   #4,$24(a2)
+        bcc.s   Obj05_ResetAnim
+        tst.b   $39(a2)
+        beq.s   Obj05_ResetAnim
+    ;   lea ($FFFFD000).w,a2    ; -- WAS LOADED ALREADY!
+    ;   cmpi.b  #6,$24(a2)      ; -- DUPLICATE CHECK!
+    ;   bcc.s   Obj05_ResetAnim     ;
+    ;   tst.b   $39(a2)         ; -- DUPLICATE CHECK!
+    ;   beq.s   Obj05_ResetAnim     ;
+        move.b  1(a2),1(a0)
+        move.w  8(a2),8(a0)
+        move.w  $C(a2),$C(a0)
+        move.b  $22(a2),$22(a0)
+        and.b   #1,$22(a0)
+        subq.w  #5,$C(a0)       ; -- was SUB, optimized to SUBQ
+        tst.b   $1D(a0)         ; is animation over?
+        bne.s   Obj05_Display       ; if not, branch
+        and.w   #$7FFF,2(a0)
+        tst.b   2(a2)
+        bpl.s   Obj05_Display
+        or.w    #$8000,2(a0)
 ; ===========================================================================
-
-loc_1DE20:				; DATA XREF: h+6E30?o
-loc_1DE28:				; CODE XREF: h+6E42?j h+6E56?j ...
-		lea	(off_1DF38).l,a1
-		jsr	AnimateSprite
-		bsr.w	loc_1DEE4
-		jmp	DisplaySprite
+ 
+Obj05_Display:
+        lea Ani_Obj05(pc),a1    ; -- used mode (xxx).l, optimized to d16(pc)
+        jsr AnimateSprite
+        bsr.w   Load_SpinDust_DPLC
+        jmp   DisplaySprite
 ; ===========================================================================
-
-loc_1DE3E:				; CODE XREF: h+6E5E?j h+6E66?j ...
-		move.b	#0,$1C(a0)
-		rts	
+ 
+Obj05_ResetAnim:
+        sf.b    $1C(a0)         ; -- used MOVE.B #0, optimized to ST (takes less space)
+        rts
 ; ===========================================================================
-
-loc_1DE46:				; DATA XREF: h+6DBA?o
-		bra.w	DeleteObject
+ 
+Obj05_Delete:
+        bra.w   DeleteObject
 ; ===========================================================================
-
-
-
-loc_1DE4A:
-	movea.w	$3E(a0),a2
-	moveq	#$10,d1
-	cmp.b	#$D,$1C(a2)
-	beq.s	loc_1DE64
-	moveq	#$6,d1
-	cmp.b	#$3,$21(a2)
-	beq.s	loc_1DE64
-	move.b	#2,$24(a0)
-	move.b	#0,$32(a0)
-	rts
+ 
+ 
+Obj05_DoSkid:
+        movea.w $3E(a0),a2      ; a2 = Character
+        moveq   #$10,d1
+        cmp.b   #$D,$1C(a2)
+        beq.s   loc_1DE64
+        moveq   #6,d1
+        cmp.b   #3,$21(a2)
+        beq.s   loc_1DE64
+        move.b  #2,$24(a0)
+        move.b  #0,$32(a0)
+        rts
 ; ===========================================================================
-
-loc_1DE64:				; CODE XREF: h+6EE0?j
-		subq.b	#1,$32(a0)
-		bpl.s	loc_1DEE0
-		move.b	#3,$32(a0)
-		jsr	SingleObjLoad
-		bne.s	loc_1DEE0
-		move.b	0(a0),0(a1)
-		move	8(a2),8(a1)
-		move	$C(a2),$C(a1)
-		tst.b	$34(a0)
-		beq.s	loc_1DE9A
-		sub	#4,d1
-
-loc_1DE9A:				; CODE XREF: h+6F1E?j
-		add	d1,$C(a1)
-		move.b	#0,$22(a1)
-		move.b	#3,$1C(a1)
-		addq.b	#2,$24(a1)
-		move.l	4(a0),4(a1)
-		move.b	1(a0),1(a1)
-		move.w	#$80,Obj_Priority(a1)
-		move.b	#4,Obj_SprWidth(a1)
-		move	2(a0),2(a1)
-		move	$3E(a0),$3E(a1)
-		and	#$7FFF,2(a1)
-		tst	2(a2)
-		bpl.s	loc_1DEE0
-		or	#-$8000,2(a1)
-
-loc_1DEE0:				; CODE XREF: h+6EF4?j h+6F00?j ...
-		bsr.s	loc_1DEE4
-		rts	
+ 
+loc_1DE64:
+        subq.b  #1,$32(a0)      ; is timer over?
+        bpl.s   Load_SpinDust_DPLC  ; if not, branch
+        move.b  #3,$32(a0)      ; reset timer
+        jsr SingleObjLoad
+        bne.s   Load_SpinDust_DPLC
+        move.b  0(a0),0(a1)
+        move    8(a2),8(a1)
+        move    $C(a2),$C(a1)
+        
+    ; -- This was check for Tails, do not want
+    ;   tst.b   $34(a0)
+    ;   beq.s   loc_1DE9A
+    ;   subq.w  #4,d1           ; -- was SUB, optimized to SUBQ
+ 
+    ;loc_1DE9A:
+        add.w   d1,$C(a1)
+        move.b  #0,$22(a1)
+        move.b  #3,$1C(a1)
+        addq.b  #2,$24(a1)
+        move.l  4(a0),4(a1)
+        move.b  1(a0),1(a1)
+        move.w  #$80,Obj_Priority(a1)
+        move.b  #4,$19(a1)
+        move.w  2(a0),2(a1)
+        move.w  $3E(a0),$3E(a1)
+        and.w   #$7FFF,2(a1)
+        tst.w   2(a2)
+        bpl.s   Load_SpinDust_DPLC
+        or  #-$8000,2(a1)
+ 
+    ; -- Totally useless branch, hey, that code is below!
+    ;loc_1DEE0:
+    ;   bra.s   Load_SpinDust_DPLC
+    ;   rts
 ; ===========================================================================
+ 
+Load_SpinDust_DPLC:
+        moveq   #0,d0
+        move.b  $1A(a0),d0      ; d0 = Frame
+        cmp.b   $30(a0),d0      ; Frame = LastFrame?
+        beq.w   locret_1DF36        ; if yes, branch
+        move.b  d0,$30(a0)      ; LastFrame = Frame
+        lea Dust_DPLCs(pc),a2    ; -- used mode (xxx).l, optimized to d16(pc)
+        add.w   d0,d0
+        add.w   (a2,d0.w),a2
+        move.w  (a2)+,d5
+        subq.w  #1,d5
+        bmi.w   locret_1DF36
+        move.w  $3C(a0),d4
+ 
+loc_1DF0A:
+        moveq   #0,d1
+        move.w  (a2)+,d1
+        move.w  d1,d3
+        lsr.w   #8,d3
+        and.w   #$F0,d3
+        add.w   #$10,d3
+        and.w   #$FFF,d1
+        lsl.l   #5,d1
+        add.l   #Art_Dust,d1
+        move.w  d4,d2
+        add.w   d3,d4
+        add.w   d3,d4
+        jsr (QueueDMATransfer).l
+        dbf d5,loc_1DF0A
+ 
+locret_1DF36:
+        rts
 
-loc_1DEE4:				; CODE XREF: h+6EC0?p h+6F6C?p
-		moveq	#0,d0
-		move.b	$1A(a0),d0
-		cmp.b	$30(a0),d0
-		beq.w	locret_1DF36
-		move.b	d0,$30(a0)
-		lea	(off_1E074).l,a2
-		add	d0,d0
-		add	(a2,d0.w),a2
-		move	(a2)+,d5
-		subq	#1,d5
-		bmi.w	locret_1DF36
-		move $3C(a0),d4
-
-loc_1DF0A:				; CODE XREF: h+6FBE?j
-		moveq	#0,d1
-		move	(a2)+,d1
-		move	d1,d3
-		lsr.w	#8,d3
-		and	#$F0,d3	; 'ð'
-		add	#$10,d3
-		and	#$FFF,d1
-		lsl.l	#5,d1
-		add.l	#Art_Dust,d1
-		move	d4,d2
-		add	d3,d4
-		add	d3,d4
-		jsr	(QueueDMATransfer).l
-		dbf	d5,loc_1DF0A
-    rts
-
-locret_1DF36:				; CODE XREF: h+6F7A?j h+6F90?j
-		rts	
 ; ===========================================================================
-off_1DF38:	dc byte_1DF40-off_1DF38; 0 ; DATA XREF: h+6EB4?o h+6FC4?o ...
-		dc byte_1DF43-off_1DF38; 1
-		dc byte_1DF4F-off_1DF38; 2
-		dc byte_1DF58-off_1DF38; 3
+Ani_Obj05:	dc byte_1DF40-Ani_Obj05; 0 ; DATA XREF: h+6EB4?o h+6FC4?o ...
+		dc byte_1DF43-Ani_Obj05; 1
+		dc byte_1DF4F-Ani_Obj05; 2
+		dc byte_1DF58-Ani_Obj05; 3
 byte_1DF40:	dc.b $1F,  0,$FF	; 0 ; DATA XREF: h+6FC4?o
 byte_1DF43:	dc.b   3,  1,  2,  3,  4,  5,  6,  7,  8,  9,$FD,  0; 0	; DATA XREF: h+6FC4?o
 byte_1DF4F:	dc.b   1, $A, $B, $C, $D, $E, $F,$10,$FF; 0 ; DATA XREF: h+6FC4?o
@@ -11852,29 +11846,29 @@ byte_1DF58:	dc.b   3,$11,$12,$13,$14,$FC; 0	; DATA XREF: h+6FC4?o
 ; -------------------------------------------------------------------------------
 ; Unknown Sprite Mappings
 ; -------------------------------------------------------------------------------
-MapUnc_1DF5E:
-	dc word_1DF8A-MapUnc_1DF5E; 0
-	dc word_1DF8C-MapUnc_1DF5E; 1
-	dc word_1DF96-MapUnc_1DF5E; 2
-	dc word_1DFA0-MapUnc_1DF5E; 3
-	dc word_1DFAA-MapUnc_1DF5E; 4
-	dc word_1DFB4-MapUnc_1DF5E; 5
-	dc word_1DFBE-MapUnc_1DF5E; 6
-	dc word_1DFC8-MapUnc_1DF5E; 7
-	dc word_1DFD2-MapUnc_1DF5E; 8
-	dc word_1DFDC-MapUnc_1DF5E; 9
-	dc word_1DFE6-MapUnc_1DF5E; 10
-	dc word_1DFF0-MapUnc_1DF5E; 11
-	dc word_1DFFA-MapUnc_1DF5E; 12
-	dc word_1E004-MapUnc_1DF5E; 13
-	dc word_1E016-MapUnc_1DF5E; 14
-	dc word_1E028-MapUnc_1DF5E; 15
-	dc word_1E03A-MapUnc_1DF5E; 16
-	dc word_1E04C-MapUnc_1DF5E; 17
-	dc word_1E056-MapUnc_1DF5E; 18
-	dc word_1E060-MapUnc_1DF5E; 19
-	dc word_1E06A-MapUnc_1DF5E; 20
-	dc word_1DF8A-MapUnc_1DF5E; 21
+Map_Obj05:
+	dc word_1DF8A-Map_Obj05; 0
+	dc word_1DF8C-Map_Obj05; 1
+	dc word_1DF96-Map_Obj05; 2
+	dc word_1DFA0-Map_Obj05; 3
+	dc word_1DFAA-Map_Obj05; 4
+	dc word_1DFB4-Map_Obj05; 5
+	dc word_1DFBE-Map_Obj05; 6
+	dc word_1DFC8-Map_Obj05; 7
+	dc word_1DFD2-Map_Obj05; 8
+	dc word_1DFDC-Map_Obj05; 9
+	dc word_1DFE6-Map_Obj05; 10
+	dc word_1DFF0-Map_Obj05; 11
+	dc word_1DFFA-Map_Obj05; 12
+	dc word_1E004-Map_Obj05; 13
+	dc word_1E016-Map_Obj05; 14
+	dc word_1E028-Map_Obj05; 15
+	dc word_1E03A-Map_Obj05; 16
+	dc word_1E04C-Map_Obj05; 17
+	dc word_1E056-Map_Obj05; 18
+	dc word_1E060-Map_Obj05; 19
+	dc word_1E06A-Map_Obj05; 20
+	dc word_1DF8A-Map_Obj05; 21
 word_1DF8A:	dc.b 0
 word_1DF8C:	dc.b 1
 	dc.b $F2, $0D, $0, 0,$F0; 0
@@ -11921,28 +11915,28 @@ word_1E060:	dc.b 1
 word_1E06A:	dc.b 1
 	dc.b $F8, $05, $0, $C,$F8; 0
 	dc.b 0
-off_1E074:	dc word_1E0A0-off_1E074; 0
-	dc word_1E0A2-off_1E074; 1
-	dc word_1E0A6-off_1E074; 2
-	dc word_1E0AA-off_1E074; 3
-	dc word_1E0AE-off_1E074; 4
-	dc word_1E0B2-off_1E074; 5
-	dc word_1E0B6-off_1E074; 6
-	dc word_1E0BA-off_1E074; 7
-	dc word_1E0BE-off_1E074; 8
-	dc word_1E0C2-off_1E074; 9
-	dc word_1E0C6-off_1E074; 10
-	dc word_1E0CA-off_1E074; 11
-	dc word_1E0CE-off_1E074; 12
-	dc word_1E0D2-off_1E074; 13
-	dc word_1E0D8-off_1E074; 14
-	dc word_1E0DE-off_1E074; 15
-	dc word_1E0E4-off_1E074; 16
-	dc word_1E0EA-off_1E074; 17
-	dc word_1E0EA-off_1E074; 18
-	dc word_1E0EA-off_1E074; 19
-	dc word_1E0EA-off_1E074; 20
-	dc word_1E0EC-off_1E074; 21
+Dust_DPLCs:	dc word_1E0A0-Dust_DPLCs; 0
+	dc word_1E0A2-Dust_DPLCs; 1
+	dc word_1E0A6-Dust_DPLCs; 2
+	dc word_1E0AA-Dust_DPLCs; 3
+	dc word_1E0AE-Dust_DPLCs; 4
+	dc word_1E0B2-Dust_DPLCs; 5
+	dc word_1E0B6-Dust_DPLCs; 6
+	dc word_1E0BA-Dust_DPLCs; 7
+	dc word_1E0BE-Dust_DPLCs; 8
+	dc word_1E0C2-Dust_DPLCs; 9
+	dc word_1E0C6-Dust_DPLCs; 10
+	dc word_1E0CA-Dust_DPLCs; 11
+	dc word_1E0CE-Dust_DPLCs; 12
+	dc word_1E0D2-Dust_DPLCs; 13
+	dc word_1E0D8-Dust_DPLCs; 14
+	dc word_1E0DE-Dust_DPLCs; 15
+	dc word_1E0E4-Dust_DPLCs; 16
+	dc word_1E0EA-Dust_DPLCs; 17
+	dc word_1E0EA-Dust_DPLCs; 18
+	dc word_1E0EA-Dust_DPLCs; 19
+	dc word_1E0EA-Dust_DPLCs; 20
+	dc word_1E0EC-Dust_DPLCs; 21
 word_1E0A0:	dc 0
 word_1E0A2:	dc 1
 	dc $7000

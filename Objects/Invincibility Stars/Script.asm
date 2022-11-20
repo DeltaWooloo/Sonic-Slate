@@ -22,11 +22,6 @@ off_1D992:
 
 InvStars_Init:
 	; Load invincibility star tiles into VRAM address $A820
-	VDPCommand	VComm_VRAMWrite, $A820
-	lea	(VDP_Data).l,a6
-	lea	(InvStars_Tiles).l,a1
-	moveq	#33-1,d1
-	jsr	LoadTiles
 	moveq	#0,d2
 	lea	off_1D992-6(pc),a2
 	lea	(a0),a1

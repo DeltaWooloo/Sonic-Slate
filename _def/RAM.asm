@@ -30,14 +30,14 @@ ObMem_Reserved  rs.b 0
 ObMem_Player    rs.b Obj_Size
 ObMem_Sidekick  rs.b Obj_Size
 ObMem_Tails     rs.b Obj_Size
-ObMem_PlyrDust  rs.b Obj_Size
-ObMem_SdkcDust  rs.b Obj_Size
 ObMem_Shield    rs.b Obj_Size
 ObMem_InvcStars rs.b Obj_Size
 ObMem_PlyrBbls  rs.b Obj_Size*3
 ObMem_SdkcBbls  rs.b Obj_Size*3
 ObMem_TtlCards  rs.b Obj_Size*4
 ObMem_Results   rs.b Obj_Size*7
+ObMem_PlyrDust  rs.b Obj_Size
+ObMem_SdkcDust  rs.b Obj_Size
     rs.b    Obj_Size*8  ; You have 8 reserved object slots!
 ObMem_Dynamic   rs.b Obj_Size*$60
 Sound_DrvrFlags rs.b $5C0   ; Note to self: Reference GitHub to make this more specific
@@ -244,7 +244,10 @@ Osc_Values  rs.b $42
     rs.b    $22
 Ring_AniTimer   rs.b 1
 Ring_AniFrame   rs.b 1
-    rs.b    2
+    rs.b    $2C
+DBug_TopBound   rs.w 1
+DBug_BtmBound   rs.w 1
+    rs.b    $1C
 
 Camera_X_pos_last = $FFFFFE2A
 Camera_Y_pos_last = $FFFFF76E

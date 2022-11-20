@@ -2,7 +2,7 @@
 ; Object pointers
 ; ---------------------------------------------------------------------------
 	dc.l Obj01, DeleteObject,	Obj03, Obj_SpinTrigger
-	dc.l SpinDash_dust, DeleteObject, Obj07, DeleteObject
+	dc.l Obj05, DeleteObject, Obj07, DeleteObject
 	dc.l DeleteObject, Obj0A, Obj_InvStars, DeleteObject
 	dc.l Obj0D, DeleteObject, DeleteObject, DeleteObject
 	dc.l Obj11, DeleteObject, DeleteObject, DeleteObject
