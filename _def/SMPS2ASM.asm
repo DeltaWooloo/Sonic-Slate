@@ -152,97 +152,15 @@ fTone_06	equ	$06
 fTone_07	equ	$07
 fTone_08	equ	$08
 fTone_09	equ	$09
-fTone_0A	equ	$0A
-fTone_0B	equ	$0B
-fTone_0C	equ	$0C
-fTone_0D	equ	$0D
-sTone_01	equ	$0E
-sTone_02	equ	$0F
-sTone_03	equ	$10
-sTone_04	equ	$11
-sTone_05	equ	$12
-sTone_06	equ	$13
-sTone_07	equ	$14	; SFX envelope, probably unused in S3K
-sTone_08	equ	$15
-sTone_09	equ	$16
-sTone_0A	equ	$17
-sTone_0B	equ	$18	; For FM volume envelopes
-sTone_0C	equ	$19
-sTone_0D	equ	$1A	; This time it matches 100%
-sTone_0E	equ	sTone_01	; Duplicate of 01
-sTone_0F	equ	sTone_02	; Duplicate of 02
-sTone_10	equ	$1B
-sTone_11	equ	$1C
-sTone_12	equ	sTone_05	; Duplicate of 05
-sTone_13	equ	sTone_06	; Duplicate of 06
-sTone_14	equ	$1D	; SFX envelope, probably unused in S3K
-sTone_15	equ	sTone_08	; Duplicate of 08
-sTone_16	equ	sTone_09	; Duplicate of 09
-sTone_17	equ	sTone_0A	; Duplicate of 0A
-sTone_18	equ	$1E	; For FM volume envelopes
-sTone_19	equ	sTone_0C	; Duplicate of 0C
-sTone_1A	equ	$1F
-sTone_1B	equ	sTone_0C	; Duplicate of 0C
-sTone_1C	equ	$06
-sTone_1D	equ	$07
-sTone_1E	equ	$02
-sTone_1F	equ	$04
-sTone_20	equ	$00	; This time it matches 100%
-sTone_21	equ	$09
-sTone_22	equ	$04
-sTone_23	equ	$07
-sTone_24	equ	$02
-sTone_25	equ	$09
-sTone_26	equ	$07
-sTone_27	equ	$03
-sTone_DB2_3	equ	$1F
 ; ---------------------------------------------------------------------------------------------
 ; DAC equates
 ; ---------------------------------------------------------------------------------------------
 dKick equ $81
 dSnare equ $82
-dClapS3 equ $83
-dKCCrash equ $84
-dCrashCymbal equ $85
-dKCKick equ	$86
-dKCSnare equ $87
 dHiTimpani equ $88
 dMidTimpani equ $89
 dLowTimpani equ $8A
 dVLowTimpani equ $8B
-dKickS3	equ $8C
-dSnareS3	equ $8D
-dElectricHighTom equ $8E
-dElectricMidTom equ $8F
-dElectricLowTom equ $90
-dElectricFloorTom equ $91
-dHighTom equ $92
-dMidTomS3 equ $93
-dLowTomS3 equ $94
-dFloorTomS3 equ $95
-dLackOfTrack1 equ $96
-dLackOfTrack2 equ $97
-dLackOfTrack3 equ $98
-dLackOfTrack4 equ $99
-dLackOfTrack5 equ $9A
-dLackOfTrack6 equ $9B
-dKickSnare equ $9C
-dCrayonKick equ $9D
-dCrayonSnare equ $9E
-dQuickLooseSnare equ $9F
-dMidTom equ $A0
-dLowTom equ $A1
-dFloorTom equ $A2
-dLowMetalHit equ $A3
-dMetalHit equ $A4
-dHighMetalHit equ $A5
-dHigherMetalHit equ $A6
-dMidMetalHit equ $A7
-dTightSnare equ $A8
-dMidpitchSnare equ $A9
-dLooseSnare equ $AA
-dLooserSnare equ $AB
-dKCAltSnare equ $AC
 ; ---------------------------------------------------------------------------------------------
 ; Channel IDs for SFX
 ; ---------------------------------------------------------------------------------------------
@@ -474,7 +392,8 @@ smpsFMvoice macro voice
 	endm
 
 ; F0wwxxyyzz - Modulation - ww: wait time - xx: modulation speed - yy: change per step - zz: number of steps
-; DeltaWooloo: I modified this to make the modulation accurate based on the sound source chosen for each song/SFX.
+; EspilionDubwool: I modified this to make it accurate based on the sound source chosen for your sounds.
+; Just bear in mind, it won't be 100% perfect so it's recommended that you modify the modulation yourself.
 smpsModSet macro wait,speed,change,step
 	dc.b	$F0
 	if SourceDriver>=3
